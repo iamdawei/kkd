@@ -1,0 +1,1 @@
+https://github.com/vsn4ik/jquery.spinner
