@@ -56,7 +56,6 @@
 <script type="text/template" id="temp_pass">
     <form id="pass_form">
         <div class="form-content">
-            <p id="login_status" style="font-size:12px;color:red;display:block;text-align: right;">&nbsp;</p>
             <div class="input-group">
                 <label class="control-label" for="old_password">初始密码 :</label>
                 <input type="text" placeholder="" id="old_password" name="password" class="form-control">
@@ -149,7 +148,7 @@
                     kkd_dialog_close();
                     alert('请妥善保管您的密码');
                 }
-                else $("#login_status").text(data.info);
+                else alert(data.info);
             },
             error:kkd_ajax_error,
             complete:kkd_ajax_complete

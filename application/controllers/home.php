@@ -151,4 +151,26 @@ class Home extends Base_Controller
         $this->load->view('assessment',$main);
         $this->load->view('footer',$data);
     }
+
+    public function pend()
+    {
+        $data['HEADER_CSS'] = "<link href=\"/js/select/css/cs-select.css\" rel=\"stylesheet\" type=\"text/css\" />
+                 <link href=\"/js/select/css/cs-skin-border.css\" rel=\"stylesheet\" type=\"text/css\" />
+                 <link href=\"/js/icheck/skins/square/blue.css?v=1.0.2\" rel=\"stylesheet\" type=\"text/css\" />";
+        $data['FOOTER_JAVASCRIPT'] = "<script src=\"/js/select/js/classie.js\" type=\"text/javascript\"></script>
+                <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>
+                <script type=\"text/javascript\" src=\"/js/birthday.js\"></script>
+                <script type=\"text/javascript\" src=\"/js/icheck/icheck.js?v=1.0.2\"></script>
+                <script type=\"text/javascript\" src=\"/js/jquery.spinner/jquery.spinner.js\"></script>";
+        $this->load->view('header',$data);
+        $this->load->view('pend');
+        $this->load->view('footer',$data);
+    }
+
+    public function role()
+    {
+        $this->load->view('header');
+        $this->load->view('role');
+        $this->load->view('footer');
+    }
 }

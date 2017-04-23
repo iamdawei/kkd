@@ -23,7 +23,7 @@
     <div class="logo">课课达</div>
     <div id="top-profile" class="top-profile">
         <a class="top-profile-user" href="javascript:void(0);">
-            <img class="top-profile-user-img" src="/images/default_user.png" width="50px" height="50px">
+            <img class="top-profile-user-img" src="<?php echo $_SESSION['user_photo']; ?>" width="50px" height="50px">
             <span><?php echo $_SESSION['user_name']; ?></span>
         </a>
         <div class="top-profile-popover">
@@ -33,7 +33,7 @@
     </div>
 </header>
 <nav class="nav">
-    <div class="nav-profile"><img src="/images/default_user.png" width="120px" height="120px"><p><span style="font-size: 20px;">welcome</span><br /><?php echo $_SESSION['user_name']; ?></p></div>
+    <div class="nav-profile"><img src="<?php echo $_SESSION['user_photo']; ?>" width="120px" height="120px"><p><span style="font-size: 20px;">welcome</span><br /><?php echo $_SESSION['user_name']; ?></p></div>
     <ul class="navitem">
         <?php
         $headerMenu = $_SESSION['group_model'];
@@ -50,13 +50,13 @@
                                 echo "<li><a href=\"/Home/teacher\" class=\"nav-icon-teacher\">教师管理</a></li>";
                                 break;
                             case '我的课表':
-                                echo "<li><a href=\"#\" class=\"nav-icon-table\">我的课表</a></li>";
+                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-table\">我的课表</a></li>";
                                 break;
                             case '学籍管理':
-                                echo "<li><a href=\"#\" class=\"nav-icon-schoolroll\">学籍管理</a></li>";
+                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-schoolroll\">学籍管理</a></li>";
                                 break;
                             case '一键排课':
-                                echo "<li><a href=\"#\" class=\"nav-icon-schedule\">一键排课</a></li>";
+                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-schedule\">一键排课</a></li>";
                                 break;
                         }
                     }
@@ -69,25 +69,25 @@
                                 echo "<li><a href=\"/Home/assessment\" class=\"nav-icon-assessment\">考核标准</a></li>";
                                 break;
                             case '用户设置':
-                                echo "<li><a href=\"#\" class=\"nav-icon-user\">用户设置</a></li>";
+                                echo "<li><a href=\"/Home/teacher\" class=\"nav-icon-user\">用户设置</a></li>";
                                 break;
                             case '角色管理':
-                                echo "<li><a href=\"#\" class=\"nav-icon-role\">角色管理</a></li>";
+                                echo "<li><a href=\"/Home/role\" class=\"nav-icon-role\">角色管理</a></li>";
                                 break;
                             case '待审列表':
-                                echo "<li><a href=\"#\" class=\"nav-icon-status\">待审列表</a></li>";
+                                echo "<li><a href=\"/Home/pend\" class=\"nav-icon-status\">待审列表</a></li>";
                                 break;
                             case '资源中心':
-                                echo "<li><a href=\"#\" class=\"nav-icon-source\">资源中心</a></li>";
+                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-source\">资源中心</a></li>";
                                 break;
                             case '排行榜':
-                                echo "<li><a href=\"#\" class=\"nav-icon-order\">排行榜</a></li>";
+                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-order\">排行榜</a></li>";
                                 break;
                         }
                     }
                     break;
                 case '平台管理':
-                    echo "<li><a href=\"#\"><span>平台管理</span></a></li>";
+                    echo "<li><a href=\"javascript:void(0);\"><span>平台管理</span></a></li>";
                     break;
             }
         }

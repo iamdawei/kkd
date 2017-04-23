@@ -15,6 +15,13 @@ echo isset($FOOTER_JAVASCRIPT)?$FOOTER_JAVASCRIPT:'';
     $(function(){
         $(".main-warp").css('min-height',$(".main").height());
         if(typeof(kkd_init) === 'function') kkd_init();
+        var localpath = window.location.pathname.toLowerCase();
+        $(".navitem>li>a").each(function(i,o){
+            if(o.href.toLowerCase().indexOf(localpath) > -1){
+                $(o).parent().addClass('active');
+                return false;
+            }
+        });
     });
 </script>
 </html>

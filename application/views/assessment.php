@@ -110,7 +110,7 @@
         </div>
         <div class="clearfix" style="text-align: center;">
             <br /><br />
-            <button class="btn btn-primary lg" data-lock-txt="重置中..." data-unlock-txt="重置密码" type="button" onclick="save()">保存信息</button>
+            <button class="btn btn-primary lg" data-lock-txt="保存中..." data-unlock-txt="保存信息" type="button" onclick="save(this)">保存信息</button>
         </div>
     </form>
 </script>
@@ -130,7 +130,6 @@
 <script type="text/javascript">
     var kkd_roles = <?php echo $KKD_ROLES?>;
     var kkd_assessment_open  = ['未发布','已发布'];
-    var kkd_assessment_type  = ['专业标准','素养标准','学术标准'];
     var kkd_form_save_type = 'post';
     var kkd_form_save_url = '/assessment';
     function add_assessment()
@@ -143,9 +142,9 @@
         kkd_icheck_init();
     }
 
-    function save()
+    function save(obj)
     {
-        kkd_valid_data_txt('');
+        KKD_AJAX_OBJ = $(obj);
         //验证参数
         var assessment_name = $.trim($("#assessment_name").val());
         if(assessment_name.length < 1 || assessment_name.length >15) return alert('请设置15字以内的项目名');
@@ -172,7 +171,10 @@
                     kkd_data_init();
                 }
                 else alert(data.info);
-            }
+            },
+            beforeSend:kkd_ajax_beforeSend,
+            error:kkd_ajax_error,
+            complete:kkd_ajax_complete
         });
     }
     function kkd_delete(uid,obj,is_open)

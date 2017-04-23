@@ -317,7 +317,7 @@ a:focus {
     min-width: 430px;
     display: inline-block;
     float: right;
-    text-align: left;
+    text-align: right;
 }
 .main-header .search-warp .select-box{
     display: inline-block;
@@ -496,6 +496,13 @@ a:focus {
     text-align: center;
     border:2px solid #eaf4f8;
 }
+.t-select{
+    display: block;
+    color: #0078FF;
+}
+.t-select label{
+    font-size: 14px;
+}
 .table-hover > tbody > tr:hover{
     background-color:#F3FBFD;
     border-left:2px solid #EC674D;
@@ -528,7 +535,7 @@ a:focus {
     display: none;
 }
 td.txt{
-    max-width: 100px;
+    max-width: 16em;
     overflow:hidden;
     text-overflow:ellipsis;
     -o-text-overflow:ellipsis;
@@ -676,6 +683,7 @@ td.txt{
     text-align: right;
     border-radius: 0px;
     min-width:80px;
+    max-width: 120px;
 }
 .control-label.lg{width:100px;font-size: 16px;}
 .input-group{position: relative;display: table;margin-bottom: 10px;border-collapse: separate;width:100%;}

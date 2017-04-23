@@ -123,7 +123,6 @@
             </div>
         </div>
         <div class="input-group">
-            <p style="text-align: center;color:red;margin:-10px 0px 20px 0px;" id="ajax-txt">&nbsp;</p>
             <button class="btn btn-primary lg center" data-lock-txt="保存中..." data-unlock-txt="保存信息" type="button" onclick="save(this)">保存信息</button>
         </div>
     </form>
@@ -226,7 +225,8 @@
         $("#kkd-user-edit select").each(function(i,o){
             if($(o).val() === '0'){
                 temp_lock=false;
-                kkd_valid_data_txt('请填写正确的日期');
+                alert('请填写正确的日期');
+                return false;
             }
         });
         if(temp_lock === false){

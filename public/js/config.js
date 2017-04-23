@@ -8,6 +8,7 @@ var KKD_CONST_LOGIN_USERNAME = '您输入的账号有误'
 var kkd_loading_txt = '<p class="kkd-loading"><img src="/images/loading.gif" /><br />正在载入数据...</p>';
 var kkd_nonedata_txt = '<p class="kkd-nonedata">别找了，真没东西啦~！</p>';
 var kkd_class_values = {1:'一',2:'二',3:'三',4:'四',5:'五',6:'六'};
+var kkd_assessment_type  = ['专业标准','素养标准','学术标准'];
 /*动态载入JS,CSS文件*/
 function load_file(filename,filetype,callback){
 
@@ -114,10 +115,6 @@ function page_loading_wait(obj)
 {
     (obj)?obj = "#main-content":'';
     $(obj).html(kkd_loading_txt);
-}
-function kkd_valid_data_txt(txt)
-{
-    $("#ajax-txt").text(txt);
 }
 function pages_init(total,current_page,total_page)
 {
