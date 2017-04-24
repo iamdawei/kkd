@@ -70,6 +70,7 @@ video {
 a {
     color: #2258A0;
     text-decoration: none;
+    outline: none;
 }
 a:hover,
 a:focus {
@@ -219,7 +220,7 @@ a:focus {
 	padding-left:70px;
 	color:inherit;
 }
-.nav > ul.navitem > li.active
+.nav > ul.navitem > li.active,.nav > ul.navitem > li.show
 {
     background-color:#f4fbfd;
 	color:#0078FF;
@@ -270,6 +271,35 @@ a:focus {
 .nav > ul.navitem > li > a.nav-icon-user
 {
     background: url('/images/common/icon-user.png') no-repeat 35px center;
+}
+.nav > ul.navitem > li.show{
+    height:auto;
+}
+.nav > ul.navitem > li.show > a > i.icon-child{
+    background: url('/images/common/down.png') no-repeat left center;
+}
+.nav > ul.navitem > li > a > i.icon-child{
+    width:30px;
+    height:70px;
+    display: inline-block;
+    float:right;
+    background: url('/images/common/right.png') no-repeat left center;
+ }
+.nav > ul.navitem > li > ul.navchild{
+    display: none;
+}
+.nav > ul.navitem > li.show > ul.navchild{
+    padding:10px 0px;
+    border-top: 1px solid #eaf4f8;
+    display: block;
+    background-color: #f4fbfd;
+}
+.nav > ul.navitem > li > ul.navchild > li{
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+    border-top: none;
+    text-align: center;
 }
 .main{
 	width:100%;
@@ -546,12 +576,12 @@ a:focus {
     padding: 14px;
     vertical-align: middle;
     border:1px solid #eaf4f8;
+    font-weight: normal;
 }
 .kkd-table>thead>tr>td, .kkd-table>thead>tr>th {
     padding: 18px;
     font-size: 16px;
     color: #0078FF;
-    font-weight: normal;
 }
 .table-hover > tbody > tr{
     border-left:2px solid #eaf4f8;
@@ -570,8 +600,8 @@ td.txt{
     -o-text-overflow:ellipsis;
     white-space:nowrap;
 }
-.kkd-table .status_1{color:#58B96E;font-weight: normal;}
-.kkd-table .status_0{color:#F12E2E;font-weight: normal;}
+.kkd-table .status_1,.kkd-table .item_status_0{color:#58B96E;font-weight: normal;}
+.kkd-table .status_0,.kkd-table .item_status_2{color:#F12E2E;font-weight: normal;}
 .main-content .pages{margin-top: 20px;display: block;}
 .pages .pagination {
     padding-left: 0;

@@ -57,13 +57,6 @@ class Home extends Base_Controller
         $data = $this->teacher_model->get_teacher($where, 'teacher_id,teacher_name,teacher_photo,school_id');
         if ($data) {
             $sign = $this->set_kkd_token($data['teacher_id'],$data['school_id'], 't');
-//            $u_id = $data['teacher_id'];
-//            $u_name = $data['teacher_name'];
-//            $u_photo = $data['teacher_photo'];
-//            $school_id = $data['school_id'];
-//            $u_type = 't';
-//            $u_auth = $this->set_user_auth($u_id);
-//            $this->set_user_session($u_id,$u_name,$u_photo,$u_type,$u_auth,$school_id);
             $time = ($record)?(7*86400):0;
             $this->load->helper('cookie');
             set_cookie('token',$sign,$time);
@@ -159,9 +152,7 @@ class Home extends Base_Controller
                  <link href=\"/js/icheck/skins/square/blue.css?v=1.0.2\" rel=\"stylesheet\" type=\"text/css\" />";
         $data['FOOTER_JAVASCRIPT'] = "<script src=\"/js/select/js/classie.js\" type=\"text/javascript\"></script>
                 <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>
-                <script type=\"text/javascript\" src=\"/js/birthday.js\"></script>
-                <script type=\"text/javascript\" src=\"/js/icheck/icheck.js?v=1.0.2\"></script>
-                <script type=\"text/javascript\" src=\"/js/jquery.spinner/jquery.spinner.js\"></script>";
+                <script type=\"text/javascript\" src=\"/js/icheck/icheck.js?v=1.0.2\"></script>";
         $this->load->view('header',$data);
         $this->load->view('pend');
         $this->load->view('footer',$data);
@@ -172,5 +163,17 @@ class Home extends Base_Controller
         $this->load->view('header');
         $this->load->view('role');
         $this->load->view('footer');
+    }
+
+    //以下公开入口属于角色为普通教师身份的用户
+    public function apply()
+    {
+        $data['HEADER_CSS'] = "<link href=\"/js/select/css/cs-select.css\" rel=\"stylesheet\" type=\"text/css\" />
+                 <link href=\"/js/select/css/cs-skin-border.css\" rel=\"stylesheet\" type=\"text/css\" />";
+        $data['FOOTER_JAVASCRIPT'] = "<script src=\"/js/select/js/classie.js\" type=\"text/javascript\"></script>
+                <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>";
+        $this->load->view('header',$data);
+        $this->load->view('apply');
+        $this->load->view('footer',$data);
     }
 }

@@ -1,6 +1,6 @@
 $.ajaxSetup({
     headers: {
-        'TOKEN': $.cookie('token'),
+        'TOKEN': $.cookie('token')
     }
 });
 //公共信息常量配置部分
@@ -30,6 +30,10 @@ function load_file(filename,filetype,callback){
         fileref.setAttribute("href",filename);
         document.getElementsByTagName("head")[0].appendChild(fileref);
     }
+}
+function kkd_show_child(obj)
+{
+    $(obj).parent().toggleClass('show');
 }
 
 Date.prototype.Format = function(fmt)

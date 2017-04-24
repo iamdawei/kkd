@@ -35,6 +35,27 @@
 <nav class="nav">
     <div class="nav-profile"><img src="<?php echo $_SESSION['user_photo']; ?>" width="120px" height="120px"><p><span style="font-size: 20px;">welcome</span><br /><?php echo $_SESSION['user_name']; ?></p></div>
     <ul class="navitem">
+        <li>
+            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">专业标准标准<i class="icon-child"></i></a>
+            <ul class="navchild">
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+            </ul>
+        </li>
+        <li class="icon-child">
+            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">素养标准<i class="icon-child"></i></a>
+            <ul class="navchild">
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+            </ul>
+        </li>
+        <li class="icon-child">
+            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">学术标准<i class="icon-child"></i></a>
+            <ul class="navchild">
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+                <li><a href="javascript:void(0);">教育教学示范课</a></li>
+            </ul>
+        </li>
         <?php
         $headerMenu = $_SESSION['group_model'];
         $group_model_name = array_unique(array_column($headerMenu,'group_model_name'));
@@ -82,6 +103,11 @@
                                 break;
                             case '排行榜':
                                 echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-order\">排行榜</a></li>";
+                                break;
+
+                            //教师身份的权限菜单
+                            case '申请列表':
+                                echo "<li><a href=\"/Home/apply\" class=\"nav-icon-status\">申请列表</a></li>";
                                 break;
                         }
                     }

@@ -99,10 +99,10 @@
         <th><input type="checkbox" value="[assessment_item_id]" name="select_checkbox[]" /></th>
         <td>[assessment_type]</td>
         <td class="txt" title="[assessment_name]">[assessment_name]</td>
-        <td><a href="javascript:check_item_info([assessment_item_id]);">[assessment_item]</a></td>
+        <td class="txt" title="[item_title]"><a href="javascript:check_item_info([assessment_item_id]);">[item_title]</a></td>
         <td>[assessment_number]</td>
         <td>[teacher_name]</td>
-        <td class="txt" title="[assessment_role]">[commit_datetime]</td>
+        <td>[commit_datetime]</td>
         <td class="t-icons-warp"><a href="javascript:void(0);" onclick="kkd_pend([assessment_item_id])" class="t-icon pend-status-1"></a>
             <a href="javascript:void(0);" onclick="kkd_rebut([assessment_item_id],0)" class="t-icon pend-status-0"></a></td>
     </tr>
@@ -276,7 +276,7 @@ function load_success(data)
             kkd_icheck_init();
         }else{
             $(data.data.data).each(function(i,o){
-                var ls = temp.replace(/\[assessment_item_id\]/g,o.assessment_item_id).replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace('[assessment_item]', o.item_title)
+                var ls = temp.replace(/\[assessment_item_id\]/g,o.assessment_item_id).replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace(/\[item_title\]/g, o.item_title)
                     .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name)
                     .replace('[commit_datetime]', o.commit_datetime).replace('[assessment_number]', o.item_number);
                 temp_data.push(ls);
