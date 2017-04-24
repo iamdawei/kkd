@@ -12,3 +12,5 @@ $route['teachers/:num'] = 'teachers/index/teacher_id/$1';
 $route['teachers/password/:num'] = 'teachers/update_password/teacher_id/$1';
 $route['assessment/:num'] = 'assessment/index/assessment_id/$1';
 $route['assessment/open/:num'] = 'assessment/open/assessment_id/$1';
+$route['assessment/item/:num'] = 'assessment/item/assessment_item_id/$1';
+$route['assessment/check/:num'] = 'assessment/check/assessment_item_id/$1';
