@@ -60,6 +60,15 @@ section,
 summary {
     display: block;
 }
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1.1;
+    color: inherit;
+}
+.h4, h4 {font-size: 18px;}
+.h5, h5 {font-size: 16px;}
+p{margin:0 0 5px;}
 audio,
 canvas,
 progress,
@@ -166,6 +175,34 @@ a:focus {
 	margin:0px auto;
 	height:40px;
 	line-height:40px;
+}
+.header .message{
+    width:70px;
+    height:75px;
+    position: absolute;
+    right:240px;
+    top:0;
+}
+.header .message img{
+    display: block;
+    margin: 20px auto;
+    border: 1px solid #eaf4f8;
+    padding:2px;
+    background-color: #eaf4f8;
+}
+.bubble {
+    position: absolute;
+    top: 12px;
+    left: 40px;
+    background-color: #e44c34;
+    color: #fff;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-color: #E23923 #D83722 #C0311E;
+    border-left: 1px solid #D83722;
+    box-shadow: -1px 1px 0 rgba(0, 0, 0, 0.25);
+    padding: 3px 5px;
+    font: bold 12px Tahoma;
 }
 .nav{
 	width:220px;
@@ -600,8 +637,8 @@ td.txt{
     -o-text-overflow:ellipsis;
     white-space:nowrap;
 }
-.kkd-table .status_1,.kkd-table .item_status_0{color:#58B96E;font-weight: normal;}
-.kkd-table .status_0,.kkd-table .item_status_2{color:#F12E2E;font-weight: normal;}
+.status_1,.item_status_0{color:#58B96E;font-weight: normal;}
+.status_0,.item_status_2{color:#F12E2E;font-weight: normal;}
 .main-content .pages{margin-top: 20px;display: block;}
 .pages .pagination {
     padding-left: 0;
@@ -886,6 +923,49 @@ input[type="checkbox"]{
 .kkd-icheck li{
     display: inline-block;
     padding:5px;
+}
+/* 媒体对象 */
+.media{
+    border-bottom: 1px solid #efefef;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+.color-1{color: #0078FF;}
+.media:first-child {
+    border-top: 1px solid #efefef;
+    margin-top: 15px;
+}
+.media, .media-body {
+    width: 100%;
+    overflow: hidden;
+}
+.media-heading {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-align: left;
+}
+.media-object {
+    display: block;
+}
+.media-body > p{
+    color: #666666;
+    margin-top:12px;
+}
+.media-body, .media-left, .media-right {
+    display: table-cell;
+    vertical-align: top;
+}
+.media-left, .media>.pull-left {
+    padding-right: 10px;
+}
+.media-right, .media>.pull-right {
+    padding-left: 10px;
+}
+.media-right>p{
+    padding:0;
+    margin:0px;
+    font-size: 16px;
+    white-space:nowrap;
 }
 
 /* spinner */
