@@ -39,17 +39,37 @@ class Assessment extends Base_Controller
                 $this->assessment_delete();
                 break;
             case REQUEST_PUT :
-                $this->assessment_update();
-                break;
+                $assessment_set_id = intval($this->uri->segment(2, 0));
+                if($assessment_set_id){
+                    $this->assessment_update();
+                    break;
+                }else{
+                    //put模式没有id值的时候，默认为更改file_number入口；
+                    $this->assessment_file_number();
+                    break;
+                }
         }
     }
+
+    //更新学校配置的file_number字段；
+    protected function assessment_file_number()
+    {
+        $res = $this->assessment_model->put_file_number($this->school_id);
+        if (!$res) {
+            $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
+        }
+
+        $this->ajax_return(200, MESSAGE_SUCCESS);
+
+    }
+
     public function open()
     {
         if(REQUEST_METHOD != REQUEST_PUT ) $this->ajax_return(400,MESSAGE_ERROR_REQUEST_TYPE);
 
         $assessment_set_id = $this->uri->segment(3,0);
         //查看当前发布状态；
-        $is_open = $this->assessment_model->get($assessment_set_id);
+        $is_open = $this->assessment_model->get_info($assessment_set_id);
 
         if($is_open['is_open'] == 1){
             $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
@@ -68,7 +88,7 @@ class Assessment extends Base_Controller
 
     protected function assessment_item($assessment_set_id)
     {
-        $data = $this->assessment_model->get($assessment_set_id);
+        $data = $this->assessment_model->get_info($assessment_set_id);
         $this->ajax_return(200, MESSAGE_SUCCESS, $data);
     }
 
@@ -76,6 +96,10 @@ class Assessment extends Base_Controller
     protected function assessment_list()
     {
         //整合传入必要分页参数；
+        //todo
+        //关于file_number的输入问题；model默认当前版本；
+        $where['file_number'] = $this->input->get('file_number');
+
         $is_open = $this->input->get('is_open');
         if(isset($is_open) && $is_open !== 'all')
         {
@@ -101,7 +125,7 @@ class Assessment extends Base_Controller
 
         // 返回数组；
         $assessmentlist = array();
-        $assessmentlist['data'] = $this->assessment_model->get($assessment_set_id = false, $where, $limit, $total);
+        $assessmentlist['data'] = $this->assessment_model->get_list($where, $limit, $total);
 
         // 返回总条数
         $assessmentlist['total'] = $total;
@@ -117,6 +141,8 @@ class Assessment extends Base_Controller
 
     protected function assessment_add()
     {
+        $this->load->model('school_model');
+        $file_number = $this->school_model->get($this->school_id,'file_number');
         $data = array(
             'assessment_type' => $this->input->post('assessment_type'),
             'assessment_name' => $this->input->post('assessment_name'),
@@ -125,7 +151,7 @@ class Assessment extends Base_Controller
             'have_zip'=> $this->input->post('have_zip'),
             'assessment_number'=> $this->input->post('assessment_number'),
             'school_id'=> $this->school_id,
-            'file_number' => date('Ym'),
+            'file_number' => $file_number,
             'is_open' => 0,
             'assessment_role'=> join(',',$this->input->post('assessment_role')),
         );
@@ -143,7 +169,7 @@ class Assessment extends Base_Controller
     {
         $assessment_set_id = intval($this->uri->segment(2,0));
         //查看当前发布状态；
-        $is_open = $this->assessment_model->get($assessment_set_id);
+        $is_open = $this->assessment_model->get_info($assessment_set_id);
         if($is_open['is_open'] == 1){
           $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
         }
@@ -162,7 +188,7 @@ class Assessment extends Base_Controller
     {
         $assessment_set_id = intval($this->uri->segment(2,0));
         //查看当前发布状态；
-        $is_open = $this->assessment_model->get($assessment_set_id);
+        $is_open = $this->assessment_model->get_info($assessment_set_id);
         if($is_open['is_open'] == 1){
             $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
         }
@@ -174,8 +200,7 @@ class Assessment extends Base_Controller
             'have_content'=> $this->input->input_stream('have_content'),
             'have_zip'=> $this->input->input_stream('have_zip'),
             'assessment_number'=> $this->input->input_stream('assessment_number'),
-            'assessment_role'=> join(',',$this->input->input_stream('assessment_role')),
-            'school_id'=> $this->school_id,
+            'assessment_role'=> join(',',$this->input->input_stream('assessment_role'))
         );
 
         $res = $this->assessment_model->put($assessment_set_id,$data);
@@ -223,19 +248,24 @@ class Assessment extends Base_Controller
     }
 
 //    上传附件接口需要即调取；
-    public function assessment_item_upfile()
+    public function item_upfile()
     {
+        $teacher_id = $this->HTTP_TOKEN_SIGN['uid'];
+        $time = $this->input->get("ktime");
+        //临时文件夹，执行保存后，将此文件夹对应文件移动到/item/下
+        $file_path = '/upload/item/temp/';
 
-        if (! file_exists("./upload/item")) {
-            mkdir("./upload/item", 0777, true);    //make_filed_to_save
+        if (! file_exists(".".$file_path)) {
+            mkdir(".".$file_path, 0777, true);
         }
 
-        $config['upload_path'] = "./upload/item"; //upload_save_filed
-        $config['allowed_types'] = 'gif|jpg|png|doc|ppt|xls|mp3|mp4|rar|txt';
-        $config['max_size'] = '500';
-//        $config['overwrite'] = true;
+        $config['upload_path'] = ".".$file_path;
+        $config['allowed_types'] = KKD_UPLOAD_FILE;
+        $config['max_size'] = 0;
+        $config['file_name'] = $teacher_id."-".time();
+        //$config['overwrite'] = true;
         $this->load->library('upload', $config);
-        $res = $this->upload->do_upload('file'); //upload
+        $res = $this->upload->do_upload('kkd_file');
 
         if (!$res) {
             $this->ajax_return(400, $this->upload->error_msg[0]);
@@ -243,46 +273,54 @@ class Assessment extends Base_Controller
 
         $data = $this->upload->data();
 
-        $res = array();
-        $res['file_name'] = $data['file_name'];
-        $res['url'] = "/upload/item/".$data['file_name']."?".time();
-
         //返回附件名称，相对地址供前端调取；
-        $this->ajax_return(200, MESSAGE_SUCCESS, $res);
+        $this->ajax_return(200, MESSAGE_SUCCESS, $data);
+    }
+
+    public function item_delfile()
+    {
+        if(REQUEST_METHOD != REQUEST_DELETE ) $this->ajax_return(400,MESSAGE_ERROR_REQUEST_TYPE);
+        //DELETE请求；
+        $file_name = $this->input->input_stream('file_name');
+        $file = "./upload/item/temp/".$file_name;
+        if (!file_exists($file)) {
+            $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
+        }
+        if (! @unlink($file))
+        {
+            $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
+        }
+        else
+        {
+            $this->ajax_return(200, MESSAGE_SUCCESS);
+        }
     }
 
     //上传文章插入图片处理接口
-//    public function assessment_item_insertimg()
-//    {
-//
-//        if (! file_exists("./upload/item_img")) {
-//            mkdir("./upload/item_img", 0777, true);    //make_filed_to_save
-//        }
-//
-//        $config['upload_path'] = "./upload/item_img"; //upload_save_filed
-//        $config['allowed_types'] = 'gif|jpg|png';
-//        $config['file_name'] = rand(1, 100) . time();
-//        $config['max_size'] = '20000';
-//        $this->load->library('upload', $config);
-//        $res = $this->upload->do_upload('upfile'); //upload
-//
-//        if (!$res) {
-//            $this->ajax_return(400, MESSAGE_ERROR_PARAMETER);
-//        }
-//
-//        //make_small_thumb;
-//        if (! file_exists("./upload/item_img/small_thumb")) {
-//
-//            mkdir("./upload/item_img/small_thumb", 0777, true);
-//
-//        }
-//
-//        $data = $this->upload->data();
-//        $res = array();
-//        $res['url'] = "/upload/item_img/" . $data['file_name'];
-//
-//        $this->ajax_return(200, MESSAGE_SUCCESS, $res);
-//    }
+    public function item_img()
+    {
+        //临时文件夹，执行保存后，将此文件夹对应文件移动到/item_img/下
+        $file_path = '/upload/item_img/temp/';
+        if (! file_exists(".".$file_path)) {
+            mkdir(".".$file_path, 0777, true);    //make_filed_to_save
+        }
+
+        $config['upload_path'] = ".".$file_path; //upload_save_filed
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['file_name'] = rand(1, 100) . time();
+        $config['max_size'] = 256;
+        $this->load->library('upload', $config);
+        $res = $this->upload->do_upload('upfile'); //upload
+
+        if (!$res) {
+            $this->ajax_return(400, $this->upload->error_msg[0]);
+        }
+
+        $data = $this->upload->data();
+        $res = $file_path . $data['file_name'];
+
+        $this->ajax_return(200, MESSAGE_SUCCESS, $res);
+    }
 
     //登陆用户提交的审核列表；
     protected function user_assessment_item_list()
@@ -292,6 +330,11 @@ class Assessment extends Base_Controller
         if (isset($assessment_type) && $assessment_type !== 'all') {
             $where['assessment_type'] = $assessment_type;
         }
+        $item_status = $this->input->get('item_status');
+        if (isset($item_status) && $item_status !== 'all') {
+            $where['item_status'] = $item_status;
+        }
+
         $where['teacher_id'] = $this->teacher_id;
         $where['page'] = intval($this->input->get('page'));
         $where['school_id'] = $this->school_id;
@@ -308,7 +351,7 @@ class Assessment extends Base_Controller
 
         // 返回数组；
         $assessment_itemlist = array();
-        $assessment_itemlist['data'] = $this->assessment_item_model->get($assessment_item_id = false, $where, $limit, $total);
+        $assessment_itemlist['data'] = $this->assessment_item_model->get_list($where, $limit, $total);
 
         // 返回总条数
         $assessment_itemlist['total'] = $total;
@@ -319,26 +362,30 @@ class Assessment extends Base_Controller
         // 返回总页数
         $assessment_itemlist['total_page'] = ceil($total / $limit);
 
-        $this->ajax_return(200, MESSAGE_SUCCESS, $assessment_itemlist);
+        $this->ajax_return(200, MESSAGE_SUCCESS.$this->assessment_item_model->get_last_query(), $assessment_itemlist);
     }
 
     protected function assessment_item_add()
     {
-        $where['assessment_type'] = $this->input->post('assessment_type');
-        $where['assessment_name'] = $this->input->post('assessment_name');
-        $assessment_set = $this->assessment_model->get_info($where, 'assessment_set_id,assessment_number,file_number,assessment_role');
+        $where['assessment_set_id'] = $this->input->post('assessment_set_id');
+        $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role');
+        if(!$assessment_set) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
+
+        $this->load->model('teacher_model');
+        $tea_va = $this->teacher_model->get_teacher(array('teacher_id'=>$this->teacher_id),'teacher_name');
+        if(!$tea_va) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
+
         $item_array = array(
             'teacher_id' => $this->teacher_id,
-            'teacher_name' => $this->input->post('teacher_name'),
-            'assessment_set_id' => $assessment_set['assessment_set_id'],
-            'assessment_type' => $this->input->post('assessment_type'),
-            'assessment_name' => $this->input->post('assessment_name'),
+            'teacher_name' => $tea_va['teacher_name'],
+            'assessment_set_id' => $where['assessment_set_id'],
+            'assessment_type' => $assessment_set['assessment_type'],
+            'assessment_name' => $assessment_set['assessment_name'],
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->post('item_title'),
             'item_content' => $this->input->post('item_content'),
-            'item_zip' => join(',', $this->input->post('item_zip')),   //note：调用附件上传接口数据处理；
-            'commit_datetime' => date('Y-m-d'),
-            'item_status' => 0,
+            'commit_datetime' => date('Y-m-d H-m-i'),
+            'item_status' => 1,
             'file_number' => $assessment_set['file_number'],
             'school_id' => $this->school_id,
             'assessment_role' => $assessment_set['assessment_role']
@@ -347,14 +394,40 @@ class Assessment extends Base_Controller
         if (!$item_id) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
+        $this->move_files($item_id);
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_id);
+    }
+
+    protected function move_files($item_id)
+    {
+        //确定上传，移动附件文件；
+        $item_zip = $this->input->post('files');
+        if(empty($item_zip)) return true;
+        $path = './upload/item/'; //目标路径
+        $temp_path = './upload/item/temp/';
+        $file_data = array();
+
+        //移动文件
+        if(! empty($item_zip)){
+            $item_zip = explode(',,,',$item_zip);
+            foreach ($item_zip as $value){
+                $file_name = explode('===',$value);
+                rename($temp_path.$file_name[1],$path.$file_name[1]);
+                $file_data[] = array(
+                    'file_name' => $file_name[0],
+                    'file_real_name' => $file_name[1],
+                    'item_id' => $item_id
+                );
+            }
+        }
+        $this->assessment_item_model->file_insert_batch($file_data);
     }
 
     //用户删除未审核内容；
     protected function assessment_item_delete($assessment_item_id)
     {
-        $status = $this->assessment_item_model->get($assessment_item_id);
-        if ($status['item_status'] == 1) {
+        $status = $this->assessment_item_model->get_item($assessment_item_id);
+        if ($status['item_status'] == 0) {
             $this->ajax_return(400, MESSAGE_ERROR_USER_ROLE);
         }
         $res = $this->assessment_item_model->delete($assessment_item_id);
@@ -366,8 +439,8 @@ class Assessment extends Base_Controller
 
     protected function assessment_item_update($assessment_item_id)
     {
-        $status = $this->assessment_item_model->get($assessment_item_id);
-        if ($status['item_status'] == 1) {
+        $status = $this->assessment_item_model->get_item($assessment_item_id);
+        if ($status['item_status'] == 0) {
             $this->ajax_return(400, MESSAGE_ERROR_USER_ROLE);
         }
         $where['assessment_type'] = $this->input->input_stream('assessment_type');
@@ -382,12 +455,8 @@ class Assessment extends Base_Controller
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->input_stream('item_title'),
             'item_content' => $this->input->input_stream('item_content'),
-            'item_zip' => join(',', $this->input->post('item_zip')),   //note：调用附件上传接口数据处理；
-            'commit_datetime' => date('Y-m-d'),
-            'item_status' => 0,
-            'file_number' => $assessment_set['file_number'],
-            'school_id' => $this->school_id,
-            'assessment_role' => $assessment_set['assessment_role']
+            'item_zip' =>  $this->input->post('item_zip'),
+            'commit_datetime' => date('Y-m-d H-m-i')
         );
         $res = $this->assessment_item_model->put($assessment_item_id, $item_array);
         if ($res < 0) {
@@ -444,7 +513,8 @@ class Assessment extends Base_Controller
     //单条详细信息；
     protected function assessment_item_info($assessment_item_id)
     {
-        $data = $this->assessment_item_model->get($assessment_item_id);
+        $data = $this->assessment_item_model->get_item($assessment_item_id);
+        $data['files'] = $this->assessment_item_model->get_item_file($assessment_item_id);
         $this->ajax_return(200, MESSAGE_SUCCESS, $data);
     }
 
@@ -452,20 +522,16 @@ class Assessment extends Base_Controller
     protected function assessment_item_list()
     {
 
-        //获取teacher_role；
-        $date['teacher_id'] = $this->teacher_id;
-        $teacher_role = $this->teacher_model->get_teacher($date,'teacher_role');
-
         //整合传入必要分页参数；
         $assessment_type = $this->input->get('assessment_type');
         if (isset($assessment_type) && $assessment_type !== 'all') {
             $where['assessment_type'] = $assessment_type;
         }
 
+        $where['teacher_id'] = $this->teacher_id;
         $where['page'] = intval($this->input->get('page'));
         $where['school_id'] = $this->school_id;
         $where['keywords'] = $this->input->get('keywords');
-        $where['teacher_role'] = $teacher_role['teacher_role'];
 
         //确定每页显示，初始化总条数；
         $limit = 10;
@@ -478,7 +544,7 @@ class Assessment extends Base_Controller
 
         // 返回数组；
         $assessment_itemlist = array();
-        $assessment_itemlist['data'] = $this->assessment_item_model->get($assessment_item_id = false, $where, $limit, $total);
+        $assessment_itemlist['data'] = $this->assessment_item_model->get($where, $limit, $total);
 
         // 返回总条数
         $assessment_itemlist['total'] = $total;
@@ -495,7 +561,7 @@ class Assessment extends Base_Controller
     protected function assessment_item_pass($assessment_item_id)
     {
         $item_array['assessment_item_id'] = $assessment_item_id;
-        $item_status['item_status'] = 1;
+        $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
         $item_status['auditor_datetime'] = date('Y-m-d');
@@ -513,7 +579,7 @@ class Assessment extends Base_Controller
     {
         $item_array = explode(',', $assessment_item_id_str);
 
-        $item_status['item_status'] = 1;
+        $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
         $item_status['auditor_datetime'] = date('Y-m-d');
@@ -532,7 +598,6 @@ class Assessment extends Base_Controller
         $item_status['auditor_name'] = $this->teacher_name;
         $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
 
-        $item_status['status_descript'] = $this->input->input_stream('status_descript');
         $res = $this->assessment_item_model->put_status($item_array, $item_status);
 
         if ($res < 0) {

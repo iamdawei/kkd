@@ -6,11 +6,10 @@
     .dialog-t-time{text-align: right;}
     .kkd-table font{color:red;font-size:12px;}
     .item-content-box{text-align: left;text-align: justify;}
-    .item-files{text-align: left;}
-    .item-files>li{height:34px;line-height:34px;display:inline-block;padding:3px 5px 3px 30px;}
     .kkd-table>tfoot>tr>td {
         background-color: #F3FBFD;
     }
+    .none{padding: 10px!important;color: #666666;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -85,7 +84,7 @@
         </tbody>
         <tfoot>
         <tr>
-            <td colspan="2"><ul class="item-files"><li class="file">文档附件</li>[item_zip]</ul></td>
+            <td colspan="2"><ul class="item-files"><li class="icon-file"><span>文档附件：</span></li>[item_zip]</ul></td>
         </tr>
         </tfoot>
     </table>
@@ -140,28 +139,25 @@ function ajax_get_teacher()
                 var maincontent = $("#template-assessment-item-info").html();
                 var o = result.data;
                 maincontent = maincontent.replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace('[item_title]', o.item_title)
-                    .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name).replace('[item_zip]',split_zip(o.item_zip))
+                    .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name).replace('[item_zip]',split_zip(o.files))
                     .replace('[commit_datetime]', o.commit_datetime).replace('[item_content]', o.item_content).replace(/\[assessment_item_id\]/g, o.assessment_item_id);
                 kkd_dialog_ini('考核项目详情',maincontent);
             }
         }
     });
 }
-function split_zip(str)
+function split_zip(files)
 {
-    var file_arr = {doc:'icon-file-word',docx:'icon-file-word',xls:'icon-file-excel',xlsx:'icon-file-excel',ppt:'icon-file-ppt',pptx:'icon-file-ppt'
-        ,jpg:'icon-file-img',png:'icon-file-img',gif:'icon-file-img'
-        ,mp3:'icon-file-mp3',rar:'icon-file-rar',mp4:'icon-file-video'};
-    var files = str.split(',');
     var temp_data = [];
     var temp_str = "<li class=\"[class]\"><a href=\"javascript:void(0);\">[name]</a></li>";
-    for(var i =0 ; i<files.length;i++)
-    {
-        var temp_fix = files[i].split('.');
-        var file_fix = temp_fix[temp_fix.length-1];
-        temp_data.push(temp_str.replace('[name]',files[i]).replace('[class]',file_arr[file_fix]));
-    }
-    if(temp_data.length == 0) return "<li>无附件</li>";
+    $(files).each(
+        function(i,o){
+            var temp_fix = o.file_name.split('.');
+            var file_fix = temp_fix[temp_fix.length-1];
+            temp_data.push(temp_str.replace('[name]',o.file_name).replace('[class]',kkd_file_arr[file_fix]));
+        }
+    );
+    if(temp_data.length == 0) return "<li class='none'>无附件</li>";
     else return temp_data.join('');
 }
 //通过

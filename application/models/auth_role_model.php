@@ -19,7 +19,7 @@ class Auth_role_model extends CI_Model
         $this->db->join( 'kkd_auth as au','au.auth_id = ar.auth_id');
         $this->db->join( 'kkd_auth_group as ag','ag.group_id = au.group_id');
         $this->db->where('teacher_id',$u_id);
-        $this->db->order_by('group_sort','DESC');
+        $this->db->order_by('group_sort','ASC');
         $res = $this->db->get()->result();
         return $res;
     }

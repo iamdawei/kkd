@@ -171,41 +171,20 @@ class User extends Base_Controller
 
                 $config['upload_path'] = "./upload/student";//upload_save_filed
                 $config['allowed_types'] = 'gif|jpg|png';
-                $config['file_name'] = $this->user_id."?".time();
-                $config['max_size'] = '20000';
+                $config['file_name'] = $this->user_id;
+                $config['max_size'] = 50;
+                $config['overwrite'] = true;
                 $this->load->library('upload',$config);
                 $res = $this->upload->do_upload('photo'); //upload
 
                 if(! $res)
                 {
-                    $this->ajax_return(400,MESSAGE_ERROR_PARAMETER);
-                }
-
-                //make_small_thumb;
-                if(! file_exists("./upload/student/small_thumb")){
-
-                    mkdir("./upload/student/small_thumb",0777,true);
-
+                    $this->ajax_return(400,$this->upload->error_msg[0]);
                 }
 
                 $data = $this->upload->data();
 
-                $config_small_thumb = array(
-                    'image_library' => 'gd2',       //image_sdk;
-                    'source_image'  => $data['full_path'],
-                    'new_image'     => "./upload/student/small_thumb/",
-                    'create_thumb'  => true,       //sure_to_make
-                    'maintain_ratio'=> true,
-                    'width'         => 198,        //to_be_official_size
-                    'height'        => 300,
-                    'thumb_marker'  => ""
-                );
-
-                $this->load->library('image_lib',$config_small_thumb);
-                $this->image_lib->initialize($config_small_thumb);
-                $this->image_lib->resize();       //make_small_thumb
-
-                $photo['student_photo'] = KKD_HOST."/upload/student/small_thumb/".$data['file_name'];
+                $photo['student_photo'] = "/upload/student/small_thumb/".$data['file_name']."?".time();
 
                 //写入数据库
                 $this->load->model('student_model');

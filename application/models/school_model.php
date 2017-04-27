@@ -27,21 +27,16 @@ class School_model extends CI_Model
     {
     }
 
-    public function get($school_id = false,$cols='')
+    public function get($school_id,$cols='')
     {
-        if($school_id === false){
-            //取list
-        }else
-        {
-            $cols = ($cols) ? $cols : $this->columns;
-            $this->db->select($cols);
-            $query = $this->db->get_where('kkd_school_config', array('school_id' => $school_id));
-            return $query->row_array();
-        }
+        $cols = ($cols) ? $cols : $this->columns;
+        $this->db->select($cols);
+        $query = $this->db->get_where('kkd_school_config', array('school_id' => $school_id));
+        return $query->row_array();
     }
 
     //list是关键字，加 _ 前缀符
-    protected function _list()
+    public function _list()
     {
     }
 }

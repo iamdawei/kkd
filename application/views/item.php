@@ -14,7 +14,7 @@
     .item-files>li.delete-file:hover{background-color:#eaf4f8;border:1px solid #dfdfdf;}
     .item-files>li.delete-file:hover>a{background: url('/images/common/icon-file/delete.png') no-repeat right top;}
 
-    .icon-upfile{height:40px;line-height: 40px;padding:10px 0px 10px 30px;background: url('/images/common/icon-file/upfile.png') no-repeat 0 center;vertical-align: top;}
+    .icon-upfile{display: inline-block;padding:10px 0px 10px 30px;background: url('/images/common/icon-file/upfile.png') no-repeat 0 center;vertical-align: top;}
     .icon-upfile:hover{background: url('/images/common/icon-file/upfile-hover.png') no-repeat 0 center;}
 
     .panel{border-radius: 0;}
@@ -32,7 +32,7 @@
 
 <div class="main">
     <div class="main-warp">
-        <div class="main-title">专业标准</div>
+        <div class="main-title"><?php echo $item_type; ?></div>
         <div class="main-content">
             <div class="main-content-warp">
                 <div class="kkd-group">
@@ -42,18 +42,17 @@
                 </div>
                 <div class="kkd-group">
                     <div class="title">标题：</div>
-                    <input type="text" placeholder="标题长度在 15 字以内" maxlength="15" id="item_title" name="item_title" class="content form-control col-4">
+                    <input type="text" placeholder="标题长度在 15 字以内" maxlength="15" id="item_title" name="item_title" class="content form-control col-4" value="<?php echo $item_title;?>" >
                 </div>
                 <div class="kkd-group">
                     <div class="title yellow">内容：</div>
                     <div class="content col-8">
-                        <div id="summernote"></div>
+                        <div id="summernote"><?php echo $item_content;?></div>
                     </div>
                 </div>
                 <div class="kkd-group">
                     <ul class="item-files col-8" id="item-files">
                         <li class="icon-file"><span>文档附件：</span></li>
-                        <li class="icon-file-excel delete-file"><a href="javascript:void(0);" onclick="delete_file(0,this)">测试.xls</a></li>
                     </ul>
                     <a class="icon-upfile" href="javascript:upfile();">上传附件</a>
                     <input type="file" id="kkd_file" name="kkd_file" onchange ="do_upload_file()" style="display: none;" value="" />
@@ -66,39 +65,56 @@
     </div>
 </div>
 <script type="text/javascript">
-    var temp_file_li = '<li class="[class] delete-file"><a href="javascript:void(0);" onclick="delete_file(0,this)">[file_name]</a></li>';
+    var temp_file_li = '<li class="[class] delete-file"><a href="javascript:void(0);" onclick="delete_file(\'[file_name]\',this,[file_index])">[client_name]</a></li>';
     var kkd_ass_model = <?php echo $KKD_ASS_MODEL?>;
-    var select_option_init = <?php echo $SELECT_OPTION_INIT?>;
+    var select_option_init = <?php echo $DEFAULT_ITEM?>;
+    var kkd_time = <?php echo $kkd_time?>;
+    var upload_file_arr = [];
     function upfile()
     {
-//        var temp = '<li class="icon-file-excel delete-file"><a href="javascript:void(0);" onclick="delete_file(0,this)">测试.xls</a></li>';
-//        $("#item-files").append(temp);
         $('#kkd_file').trigger('click');
     }
     function do_upload_file()
     {
         $.ajaxFileUpload({
-            url: '/assessment/item_upfile',
+            url: '/assessment/item_upfile?ktime='+kkd_time,
             secureuri: false,
             fileElementId:'kkd_file',
             dataType : 'json',
             success:function(result){
                 if(result.code == 200) {
-                    var temp_fix = result.data.split('.');
+                    var temp_fix = result.data.client_name.split('.');
                     var file_fix = temp_fix[temp_fix.length-1];
-                    $("#item-files").append(temp_file_li.replace('[file_name]',result.data).replace('[class]',kkd_file_arr[file_fix]));
+
+                    $("#item-files").append(temp_file_li.replace('[client_name]',result.data.client_name).replace('[file_name]',result.data.file_name).replace('[class]',kkd_file_arr[file_fix]).replace('[file_index]',upload_file_arr.length));
+                    upload_file_arr.push([result.data.client_name,result.data.file_name]);
+
+                }
+                else alert(result.info);
+            },
+            error:function(){
+                alert('[上传失败] 文件过大');
+            }
+        });
+    }
+    function delete_file(file_name,obj,i)
+    {
+        $.ajax({
+            url: '/assessment/item_delfile',
+            dataType:'json',
+            data:'file_name='+file_name,
+            type:'delete',
+            success:function(result){
+                if(result.code == 200){
+                    $(obj).parent().remove();
+                    upload_file_arr.splice(i,1);
                 }
                 else alert(result.info);
             }
         });
     }
-    function delete_file(file_id,obj)
-    {
-        $(obj).parent().remove();
-    }
     function save(obj)
     {
-        //alert($('#summernote').summernote('code'));
         KKD_AJAX_OBJ = $(obj);
         //验证参数
         var item_content = $('#summernote').summernote('code');
@@ -109,7 +125,15 @@
         if(item_content == 0) return alert('请输入内容');
 
         //组织请求体
-        var req_datas = 'item_title=0'+item_title+'&item_content=0'+item_content+'&assessment_item_id='+$("#assessment_set").val()+'&assessment_name='+$("#assessment_set").find("option:selected").text();
+        var req_datas = 'item_title='+item_title+'&item_content='+item_content+'&assessment_set_id='+$("#assessment_set").val()+'&assessment_name='+$("#assessment_set").find("option:selected").text();
+
+        var files_temp_data = [];
+        for(var i =0 ;i<upload_file_arr.length;i++)
+        {
+            files_temp_data.push(upload_file_arr[i][0]+"==="+upload_file_arr[i][1]);
+        }
+        req_datas = req_datas + "&files=" + files_temp_data.join(",,,");
+
         $.ajax({
             url: '/assessment/item',
             dataType:'json',
@@ -117,8 +141,7 @@
             type:'post',
             success:function(data){
                 if(data.code == 200) {
-                    kkd_dialog_close();
-                    kkd_data_init();
+                    window.location.href="/Home";
                 }
                 else alert(data.info);
             },
@@ -141,8 +164,26 @@
         }
         $('#assessment_set').html(temp_data.join(''));
         $('#assessment_set').val(select_option_init);
-    }
 
+        split_zip();
+    }
+    function split_zip()
+    {
+        var files = <?php echo $ass_item_files?>;
+        if(!files) return;
+        var temp_data = [];
+        $(files).each(
+            function(i,o){
+                var temp_fix = o.file_name.split('.');
+                var file_fix = temp_fix[temp_fix.length-1];
+                temp_data.push(temp_file_li.replace('[name]',o.file_name).replace('[class]',kkd_file_arr[file_fix]));
+
+                $("#item-files").append(temp_file_li.replace('[client_name]',o.file_name).replace('[file_name]',o.file_real_name).replace('[class]',kkd_file_arr[file_fix]).replace('[file_index]',upload_file_arr.length));
+                upload_file_arr.push([o.file_name,o.file_real_name]);
+
+            }
+        );
+    }
     function kkd_summernote_init()
     {
         //http://wb-mgrigorov.rhcloud.com/summernote
@@ -189,7 +230,6 @@
                             },
                             success : function(result) {
                                 if(result.code == 200){
-                                    console.log(result);
                                     var imageUrl = result.data;
                                     $('#summernote').summernote('insertImage', imageUrl);
                                 }

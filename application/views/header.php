@@ -35,27 +35,6 @@
 <nav class="nav">
     <div class="nav-profile"><img src="<?php echo $_SESSION['user_photo']; ?>" width="120px" height="120px"><p><span style="font-size: 20px;">welcome</span><br /><?php echo $_SESSION['user_name']; ?></p></div>
     <ul class="navitem">
-        <li>
-            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">专业标准标准<i class="icon-child"></i></a>
-            <ul class="navchild">
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-            </ul>
-        </li>
-        <li class="icon-child">
-            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">素养标准<i class="icon-child"></i></a>
-            <ul class="navchild">
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-            </ul>
-        </li>
-        <li class="icon-child">
-            <a href="javascript:void(0);" onclick="kkd_show_child(this)" class=\"nav-icon-status\">学术标准<i class="icon-child"></i></a>
-            <ul class="navchild">
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-                <li><a href="javascript:void(0);">教育教学示范课</a></li>
-            </ul>
-        </li>
         <?php
         $headerMenu = $_SESSION['group_model'];
         $group_model_name = array_unique(array_column($headerMenu,'group_model_name'));
@@ -104,10 +83,43 @@
                             case '排行榜':
                                 echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-order\">排行榜</a></li>";
                                 break;
-
                             //教师身份的权限菜单
                             case '申请列表':
-                                echo "<li><a href=\"/Home/apply\" class=\"nav-icon-status\">申请列表</a></li>";
+                                echo "<li><a href=\"/Home/apply\" class=\"nav-icon-assessment\">申请列表</a></li>";
+                                break;
+                            case '考核申请':
+                                $ass_menu = $_SESSION['assessment_menu'];
+                                $ass0 =[];
+                                $ass1 = [];
+                                $ass2 = [];
+                                foreach($ass_menu as $a_m)
+                                {
+                                    //[0专业,1素养,2学术]
+                                    if($a_m->assessment_type === '0'){
+                                        $ass0[] = "<li><a href=\"/Home/item?type=0&sid=$a_m->assessment_set_id\">$a_m->assessment_name</a></li>";
+                                    }else if($a_m->assessment_type === '1')
+                                    {
+                                        $ass1[] = "<li><a href=\"/Home/item?type=1&sid=$a_m->assessment_set_id\">$a_m->assessment_name</a></li>";
+                                    }
+                                    else if($a_m->assessment_type === '2')
+                                    {
+                                        $ass2[] = "<li><a href=\"/Home/item?type=2&sid=$a_m->assessment_set_id\">$a_m->assessment_name</a></li>";
+                                    }
+
+                                }
+                                //var_dump($ass1);
+                                if($ass0){
+                                    $child = implode('',$ass0);
+                                    echo "<li><a href=\"javascript:void(0);\" onclick=\"kkd_show_child(this)\" class=\"nav-icon-ass-0\">专业标准<i class=\"icon-child\"></i></a><ul class=\"navchild\">$child</ul></li>";
+                                }
+                                if($ass1){
+                                    $child = implode('',$ass1);
+                                    echo "<li><a href=\"javascript:void(0);\" onclick=\"kkd_show_child(this)\" class=\"nav-icon-ass-1\">素养标准<i class=\"icon-child\"></i></a><ul class=\"navchild\">$child</ul></li>";
+                                }
+                                if($ass2){
+                                    $child = implode('',$ass2);
+                                    echo "<li><a href=\"javascript:void(0);\" onclick=\"kkd_show_child(this)\" class=\"nav-icon-ass-2\">学术标准<i class=\"icon-child\"></i></a><ul class=\"navchild\">$child</ul></li>";
+                                }
                                 break;
                         }
                     }

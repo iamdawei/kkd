@@ -176,4 +176,50 @@ class Home extends Base_Controller
         $this->load->view('apply');
         $this->load->view('footer',$data);
     }
+
+    public function item()
+    {
+        $item_id = $this->input->get('edit');
+        $main['ass_item_files']=0;
+        $main['item_title']='';
+        $main['item_content']='';
+        if($item_id){
+            $this->load->model('assessment_item_model');
+            $ass_item = $this->assessment_item_model->get_item($item_id,'assessment_type,assessment_set_id,item_title,item_content');
+            $ass_item_files = $this->assessment_item_model->get_item_file($item_id);
+            $main['ass_item_files'] = json_encode($ass_item_files);
+            $main['item_title'] = $ass_item['item_title'];
+            $main['item_content'] = $ass_item['item_content'];
+        }
+        else{
+            $sid = $this->input->get('sid');
+            $asstype = $this->input->get('type');
+            $ass_item['assessment_set_id']=$sid;
+            $ass_item['assessment_type']=$asstype;
+        }
+
+        //获取当前item所属set类型下的列表
+        $this->load->model('assessment_model');
+        $where['is_open'] = 1;
+        $where['assessment_type'] = $ass_item['assessment_type'];
+        $where['kkd_assessment_set.school_id'] = $this->school_id;
+        $ass_model = $this->assessment_model->get_name_list($where);
+
+        $main['KKD_ASS_MODEL'] = json_encode($ass_model);
+        $main['DEFAULT_ITEM'] = $ass_item['assessment_set_id'];
+        $item_type = ['专业标准','素养标准','学术标准'];
+        $main['item_type']=$item_type[$where['assessment_type']];
+        $main['kkd_time']=time();
+
+        $data['HEADER_CSS'] = "<link href=\"//cdn.bootcss.com/bootstrap/3.1.0/css/bootstrap.min.css\" rel=\"stylesheet\">
+<link rel=\"stylesheet\" href=\"/js/bootstrap.summernote/dist/summernote.0.8.2.css\">";
+        $data['FOOTER_JAVASCRIPT'] = "<script src=\"//cdn.bootcss.com/bootstrap/3.1.0/js/bootstrap.min.js\"></script>
+<script type=\"text/javascript\" src=\"/js/bootstrap.summernote/dist/summernote.min.0.8.2.js\"></script>
+<script type=\"text/javascript\" src=\"/js/bootstrap.summernote/lang/summernote-zh-CN.js\"></script>
+<script type=\"text/javascript\" src=\"/js/bootstrap.summernote/dist/spin.js\"></script>
+<script type=\"text/javascript\" src=\"/js/ajaxfileupload.js\"></script>";
+        $this->load->view('header',$data);
+        $this->load->view('item',$main);
+        $this->load->view('footer',$data);
+    }
 }

@@ -6,6 +6,7 @@
  *   用户验证，token生成，ajax返回值
  */
 define('KKD_HOST', 'http://kkd.localhost:8081');
+define('KKD_UPLOAD_FILE','gif|jpg|png|doc|docx|ppt|pptx|xls|xlsx|mp3|mp4|rar|zip');
 
 define('DEFAULT_AJAX_RETURN', 'JSON');
 define('DEFAULT_JSONP_HANDLER', 'jsonpReturn');
@@ -190,7 +191,9 @@ class Base_Controller extends CI_Controller
         $_SESSION['user_photo'] = $u_photo;
         $_SESSION['user_type'] = $u_type;
         $_SESSION['group_model'] = $this->user_auth_group;
+        $_SESSION['assessment_menu'] = $this->assessment_item_menu();
         $_SESSION['school_id']=$school_id;
+
         session_write_close();
     }
 
@@ -209,6 +212,10 @@ class Base_Controller extends CI_Controller
             {
                 return true;
             }
+            if(strcasecmp($row->auth_controller,$controller) === 0 && $row->auth_method === $method && $row->auth_action === 'all')
+            {
+                return true;
+            }
             if(strcasecmp($row->auth_controller,$controller) === 0 &&
                 strcasecmp($row->auth_method,$method) === 0 &&
                 strcasecmp($row->auth_action,$action) === 0)
@@ -217,5 +224,13 @@ class Base_Controller extends CI_Controller
             }
         }
         return false;
+    }
+
+    protected function assessment_item_menu()
+    {
+        $this->load->model('assessment_model');
+        $where['is_open'] = 1;
+        $where['kkd_assessment_set.school_id'] = $this->school_id;
+        return $this->assessment_model->get_name_list($where,'assessment_set_id,assessment_name,assessment_type');
     }
 }

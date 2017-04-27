@@ -11,7 +11,7 @@ class Assessment_item_model extends CI_Model
     //待审列表
     protected $columns = 'assessment_item_id,assessment_type,ai.assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime';
     //单条申请内容详细
-    protected $columns_detail ='assessment_item_id,assessment_type,item_title,teacher_name,commit_datetime,item_content,item_zip,item_status';
+    protected $columns_detail ='assessment_item_id,assessment_type,item_title,teacher_name,commit_datetime,item_content,item_status';
     //用户个人申请记录；
     protected $columns_user = 'assessment_item_id,assessment_type,item_title,commit_datetime,item_status,status_descript,assessment_name';
 
@@ -154,13 +154,27 @@ class Assessment_item_model extends CI_Model
 
     }
 
-    public function get_item($assessment_item_id)
+    public function get_item($assessment_item_id,$cols='')
     {
-        $cols = $this->columns_detail;
+        $cols = ($cols) ? $cols : $this->columns;
         $this->db->select($cols);
         $this->db->where('assessment_item_id',$assessment_item_id);
         $query = $this->db->get('kkd_assessment_item');
         return $query->row_array();
+    }
+
+    public function get_item_file($item_id)
+    {
+        $this->db->from('kkd_item_file');
+        $this->db->select('file_id,file_name,file_real_name');
+        $this->db->where('item_id', $item_id);
+        return $this->db->get()->result();
+    }
+
+    public function file_insert_batch($data)
+    {
+        $va = $this->db->insert_batch('kkd_item_file', $data);
+        return $va;
     }
 
 }

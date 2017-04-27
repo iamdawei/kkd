@@ -13,8 +13,18 @@
         -moz-border-radius: 5px;
         -webkit-border-radius: 5px;
         border-radius: 5px;
-        background:#eaf4f8 url('/images/delete-data-2.png') no-repeat 10px center;
-        background-size: 80px 80px;
+    }
+    .role-list > li.role_0{
+        background:#eaf4f8 url('/images/role_0.png') no-repeat 10px center;
+        background-size: 80px;
+    }
+    .role-list > li.role_1{
+        background:#eaf4f8 url('/images/role_1.png') no-repeat 10px center;
+        background-size: 80px;
+    }
+    .role-list > li.role_2{
+        background:#eaf4f8 url('/images/role_2.png') no-repeat 10px center;
+        background-size: 80px;
     }
     .role-list > li:hover{
         -moz-box-shadow: 0px 2px 5px #DDDDDD;
@@ -23,7 +33,7 @@
     }
     .role-list > li.role-add{
         padding:40px 20px 20px 150px;
-        background:#eaf4f8 url('/images/common/add.png') no-repeat 60px center;
+        background:#eaf4f8 url('/images/common/add-role.png') no-repeat 60px center;
         background-size: 80px 80px;
         line-height: 50px;
     }
@@ -57,7 +67,9 @@
     .t-delete{
         background: url('/images/common/t-delete-hover.png') no-repeat 0 0;
     }
-    .form-content{width: 70%;margin:0px auto}
+    .form-content{width: 70%;margin:0px auto;}
+
+    .kkd-dialog-wrap .kkd-dialog-container{width:400px;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -84,7 +96,7 @@
         </div>
 </script>
 <script type="text/template" id="template-role-data">
-    <li>
+    <li class="role_[class]">
         <span>[role_name]</span>
         <div class="icon-box"><a href="javascript:void(0);" onclick="update_role([role_id],'[role_name]')" class="t-edit"></a>
             <a href="javascript:void(0);" onclick="kkd_delete([role_id],this)" class="t-delete"></a></div>
@@ -115,7 +127,17 @@
 
     function kkd_delete(uid,obj)
     {
-        $(obj).parent().parent().hide(1000,function(){$(this).remove();});
+        $.ajax({
+            url:"/role/"+uid,
+            dataType:'json',
+            type:'delete',
+            success:function(result){
+                if(result.code == 200) {
+                    $(obj).parent().parent().hide(1000,function(){$(this).remove();});
+                }
+                else alert(result.info);
+            }
+        });
     }
 
     function save(obj)
@@ -123,7 +145,7 @@
         KKD_AJAX_OBJ = $(obj);
         //验证参数
         var role_name = $.trim($("#role_name").val());
-        if(role_name.length < 1 || role_name.length >15) return alert('请设置15字以内的项目名');
+        if(role_name.length < 1 || role_name.length >15) return alert('请设置15字以内的角色名');
 
         //组织请求体
         var req_datas = 'role_name='+role_name;
@@ -145,24 +167,9 @@
         });
     }
 
-    function kkd_data_init(url){
-        //---------------
-        // -- 临时数据模拟
-        var temp_data = [];
-        var temp = $("#template-role-data").html();
-        for(var i =0 ;i<10;i++)
-        {
-            var ls = temp.replace(/\[role_id\]/g, 0).replace(/\[role_name\]/g, '测试角色名字管理');
-            temp_data.push(ls);
-        }
-        temp_data.push(add_role_obj);
-        $("#kkd-data-target").html(temp_data.join(''));
-        //---------------
-
-        return false;
-        url = (url)?url:'/role';
+    function kkd_data_init(){
         $.ajax({
-            url: url,
+            url: '/role',
             dataType:'json',
             type:'get',
             beforeSend:function(){
@@ -172,22 +179,23 @@
             error:kkd_ajax_error
         });
     }
-    function load_success(data)
+    function load_success(result)
     {
-        if(data.code == 200 ){
-            var temp = $("#template-assessment-data").html();
+        if(result.code == 200 ){
             var temp_data = [];
-            if(data.data.data.length == 0) {
-                $("#kkd-data-target").html('<tr><td colspan="7">'+ kkd_nonedata_txt +'</td></tr>');
-            }else{
-                $(data.data.data).each(function(i,o){
-                });
-                $("#kkd-data-target").html(temp_data.join(''));
-            }
-        }
-        else {
-            alert(data.info);
+            var temp = $("#template-role-data").html();
+            var tempC = 0;
+
+            $(result.data).each(function(i,o){
+                var ls = temp.replace(/\[role_id\]/g, o.role_id).replace(/\[role_name\]/g, o.role_name).replace(/\[class\]/g, tempC);
+                if(tempC == 2) tempC =0;
+                else tempC++;
+                temp_data.push(ls);
+            });
+            temp_data.push(add_role_obj);
+            $("#kkd-data-target").html(temp_data.join(''));
+        }else {
+            alert(result.info);
         }
     }
-
 </script>

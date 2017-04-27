@@ -40,6 +40,11 @@ class Rank extends Base_Controller
     protected function rank_item($teacher_id)
     {
         //整合传入必要分页参数；
+        //todo
+        //关于file_number的输入问题；model默认当前版本；
+        //默认当前版本，当file_number == 'all' 时显示所有数据排行；
+        $where['file_number'] = $this->input->get('file_number');
+
         $where['assessment_type'] = $this->input->get('assessment_type');
         $where['teacher_id'] = $teacher_id;
         $where['page'] = intval($this->input->get('page'));
@@ -74,6 +79,10 @@ class Rank extends Base_Controller
     protected function rank_list()
     {
         //整合传入必要分页参数；
+        //todo
+        //关于file_number的输入问题；model默认当前版本；
+        $where['file_number'] = $this->input->get('file_number');
+
         $where['assessment_type'] = $this->input->get('assessment_type');
         $where['teacher_subject'] = $this->input->get('teacher_subject');
         $where['grade_number'] = $this->input->get('grade_number');

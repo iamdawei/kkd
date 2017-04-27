@@ -38,7 +38,7 @@
                 <p class="user-info" id="main-content"></p>
                 <div class="user-photo">
                     <a href="javascript:void(0);" onclick="$('#photo').trigger('click')"><img id="teacher_photo" src="/images/default_user.png" width="90px" height="90px"><br />点击上传头像</a>
-                    <input type="file" id="photo" name="photo" onchange ="upload_photo()" style="display: none;" id="input-user-photo" accept="image/gif, image/jpeg, image/png" value="" />
+                    <input type="file" id="photo" name="photo" onchange ="upload_photo()" style="display: none;" accept="image/gif, image/jpeg, image/png" value="" />
                 </div>
                 <hr class="clearfix" />
                 <div class="title">账号管理</div>
