@@ -4,14 +4,18 @@
  * 新增，成功返回：true
  * 修改，成功返回：影响的行数
  * 查询返回的是一个数组，如果为空，则是一个空数组
+ *
+ * TODO 2017-04-27 优化功能
+ * 所有的查询列，不采取columns_set，columns_detail，columns_user这种内置的方式
+ * 如果需要有获取的参数，全部由控制器中传入cols参数，如果cols参数为空，则返回-1
  */
 
 class Assessment_item_model extends CI_Model
 {
-    //待审列表
-    protected $columns = 'assessment_item_id,assessment_type,ai.assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime';
+    //管理员取值
+    protected $columns_set = 'assessment_item_id,assessment_type,ai.assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime';
     //单条申请内容详细
-    protected $columns_detail ='assessment_item_id,assessment_type,item_title,teacher_name,commit_datetime,item_content,item_status';
+    protected $columns_detail ='assessment_item_id,assessment_type,assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime,item_status';
     //用户个人申请记录；
     protected $columns_user = 'assessment_item_id,assessment_type,item_title,commit_datetime,item_status,status_descript,assessment_name';
 
@@ -28,8 +32,12 @@ class Assessment_item_model extends CI_Model
 
     public function delete($assessment_item_id)
     {
+        $this->db->where('item_id', $assessment_item_id);
+        $this->db->delete('kkd_item_file');
+
         $this->db->where('assessment_item_id', $assessment_item_id);
         $this->db->delete('kkd_assessment_item');
+
         return $this->db->affected_rows();
     }
 
@@ -81,7 +89,7 @@ class Assessment_item_model extends CI_Model
             $total = $this->db->count_all_results();
         }
 
-        $this->db->select($this->columns);
+        $this->db->select($this->columns_set);
         $this->db->from('kkd_assessment_item as ai');
         $this->db->join('kkd_assessment_role as ar','ai.assessment_set_id = ar.assessment_set_id','ai.school_id = ar.school_id');
         $this->db->join('kkd_teacher_role as tr','tr.role_id = ar.role_id');
@@ -156,7 +164,7 @@ class Assessment_item_model extends CI_Model
 
     public function get_item($assessment_item_id,$cols='')
     {
-        $cols = ($cols) ? $cols : $this->columns;
+        $cols = ($cols) ? $cols : $this->columns_detail;
         $this->db->select($cols);
         $this->db->where('assessment_item_id',$assessment_item_id);
         $query = $this->db->get('kkd_assessment_item');
@@ -177,4 +185,10 @@ class Assessment_item_model extends CI_Model
         return $va;
     }
 
+    public function file_delete($file_id)
+    {
+        $this->db->where('file_id', $file_id);
+        $this->db->delete('kkd_item_file');
+        return $this->db->affected_rows();
+    }
 }

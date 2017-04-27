@@ -183,13 +183,18 @@ class Home extends Base_Controller
         $main['ass_item_files']=0;
         $main['item_title']='';
         $main['item_content']='';
+        $main['save_method'] = 'post';
+        $main['save_path'] ='/assessment/item';
         if($item_id){
             $this->load->model('assessment_item_model');
             $ass_item = $this->assessment_item_model->get_item($item_id,'assessment_type,assessment_set_id,item_title,item_content');
             $ass_item_files = $this->assessment_item_model->get_item_file($item_id);
+            if(!$ass_item) $this->direct('/Home/apply');
             $main['ass_item_files'] = json_encode($ass_item_files);
             $main['item_title'] = $ass_item['item_title'];
             $main['item_content'] = $ass_item['item_content'];
+            $main['save_method'] = 'put';
+            $main['save_path'] ='/assessment/item/'.$item_id;
         }
         else{
             $sid = $this->input->get('sid');
@@ -209,7 +214,6 @@ class Home extends Base_Controller
         $main['DEFAULT_ITEM'] = $ass_item['assessment_set_id'];
         $item_type = ['专业标准','素养标准','学术标准'];
         $main['item_type']=$item_type[$where['assessment_type']];
-        $main['kkd_time']=time();
 
         $data['HEADER_CSS'] = "<link href=\"//cdn.bootcss.com/bootstrap/3.1.0/css/bootstrap.min.css\" rel=\"stylesheet\">
 <link rel=\"stylesheet\" href=\"/js/bootstrap.summernote/dist/summernote.0.8.2.css\">";

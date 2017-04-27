@@ -65,19 +65,22 @@
     </div>
 </div>
 <script type="text/javascript">
-    var temp_file_li = '<li class="[class] delete-file"><a href="javascript:void(0);" onclick="delete_file(\'[file_name]\',this,[file_index])">[client_name]</a></li>';
+    var temp_file_li = '<li class="[class] delete-file"><a href="javascript:void(0);" onclick="delete_file(\'[file_name]\',this,[file_index],[file_id])">[client_name]</a></li>';
     var kkd_ass_model = <?php echo $KKD_ASS_MODEL?>;
     var select_option_init = <?php echo $DEFAULT_ITEM?>;
-    var kkd_time = <?php echo $kkd_time?>;
     var upload_file_arr = [];
+    var upload_summernote_arr = [];
+    var kkd_save_method = '<?php echo $save_method?>';
+    var kkd_save_path =  '<?php echo $save_path?>';
     function upfile()
     {
+        if(upload_file_arr.length > 1) return alert('最多只能上传2个文件噢');
         $('#kkd_file').trigger('click');
     }
     function do_upload_file()
     {
         $.ajaxFileUpload({
-            url: '/assessment/item_upfile?ktime='+kkd_time,
+            url: '/assessment/item_upfile',
             secureuri: false,
             fileElementId:'kkd_file',
             dataType : 'json',
@@ -86,7 +89,8 @@
                     var temp_fix = result.data.client_name.split('.');
                     var file_fix = temp_fix[temp_fix.length-1];
 
-                    $("#item-files").append(temp_file_li.replace('[client_name]',result.data.client_name).replace('[file_name]',result.data.file_name).replace('[class]',kkd_file_arr[file_fix]).replace('[file_index]',upload_file_arr.length));
+                    $("#item-files").append(temp_file_li.replace('[client_name]',result.data.client_name).replace('[file_name]',result.data.file_name).replace('[class]',kkd_file_arr[file_fix])
+                        .replace('[file_index]',upload_file_arr.length).replace('[file_id]',0));
                     upload_file_arr.push([result.data.client_name,result.data.file_name]);
 
                 }
@@ -97,12 +101,12 @@
             }
         });
     }
-    function delete_file(file_name,obj,i)
+    function delete_file(file_name,obj,i,file_id)
     {
         $.ajax({
             url: '/assessment/item_delfile',
             dataType:'json',
-            data:'file_name='+file_name,
+            data:'file_name='+file_name+'&file_id='+file_id,
             type:'delete',
             success:function(result){
                 if(result.code == 200){
@@ -123,25 +127,24 @@
         if(item_title.length < 1 || item_title.length >15) return alert('标题长度在15字以内');
 
         if(item_content == 0) return alert('请输入内容');
-
+        item_content=item_content.replace(/src=\"\/upload\/item_img\/temp\//g,'src="/upload/item_img/');
         //组织请求体
         var req_datas = 'item_title='+item_title+'&item_content='+item_content+'&assessment_set_id='+$("#assessment_set").val()+'&assessment_name='+$("#assessment_set").find("option:selected").text();
-
         var files_temp_data = [];
         for(var i =0 ;i<upload_file_arr.length;i++)
         {
             files_temp_data.push(upload_file_arr[i][0]+"==="+upload_file_arr[i][1]);
         }
         req_datas = req_datas + "&files=" + files_temp_data.join(",,,");
-
+        req_datas = req_datas + "&imgs=" + upload_summernote_arr.join(',,,');
         $.ajax({
-            url: '/assessment/item',
+            url: kkd_save_path,
             dataType:'json',
             data:req_datas,
-            type:'post',
+            type:kkd_save_method,
             success:function(data){
                 if(data.code == 200) {
-                    window.location.href="/Home";
+                    window.location.href="/Home/apply";
                 }
                 else alert(data.info);
             },
@@ -178,9 +181,9 @@
                 var file_fix = temp_fix[temp_fix.length-1];
                 temp_data.push(temp_file_li.replace('[name]',o.file_name).replace('[class]',kkd_file_arr[file_fix]));
 
-                $("#item-files").append(temp_file_li.replace('[client_name]',o.file_name).replace('[file_name]',o.file_real_name).replace('[class]',kkd_file_arr[file_fix]).replace('[file_index]',upload_file_arr.length));
+                $("#item-files").append(temp_file_li.replace('[client_name]',o.file_name).replace('[file_name]',o.file_real_name).replace('[class]',kkd_file_arr[file_fix])
+                    .replace('[file_index]',upload_file_arr.length).replace('[file_id]', o.file_id));
                 upload_file_arr.push([o.file_name,o.file_real_name]);
-
             }
         );
     }
@@ -232,6 +235,7 @@
                                 if(result.code == 200){
                                     var imageUrl = result.data;
                                     $('#summernote').summernote('insertImage', imageUrl);
+                                    upload_summernote_arr.push(imageUrl);
                                 }
                                 else alert(result.info);
                             }
