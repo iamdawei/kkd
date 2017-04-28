@@ -7,8 +7,10 @@ $.ajaxSetup({
 var KKD_CONST_LOGIN_USERNAME = '您输入的账号有误'
 var kkd_loading_txt = '<p class="kkd-loading"><img src="/images/loading.gif" /><br />正在载入数据...</p>';
 var kkd_nonedata_txt = '<p class="kkd-nonedata">别找了，真没东西啦~！</p>';
-var kkd_class_values = {1:'一',2:'二',3:'三',4:'四',5:'五',6:'六'};
+var kkd_class_values = {0:'未设置',1:'一',2:'二',3:'三',4:'四',5:'五',6:'六'};
 var kkd_assessment_type  = ['专业标准','素养标准','学术标准'];
+var kkd_file_arr = {doc:'icon-file-word',docx:'icon-file-word',xls:'icon-file-excel',xlsx:'icon-file-excel',ppt:'icon-file-ppt',pptx:'icon-file-ppt'
+    ,jpg:'icon-file-img',png:'icon-file-img',gif:'icon-file-img',mp3:'icon-file-mp3',rar:'icon-file-rar',zip:'icon-file-rar',mp4:'icon-file-video'};
 /*动态载入JS,CSS文件*/
 function load_file(filename,filetype,callback){
 
@@ -33,7 +35,12 @@ function load_file(filename,filetype,callback){
 }
 function kkd_show_child(obj)
 {
-    $(obj).parent().toggleClass('show');
+    var s = $(obj).parent();
+    if(s.hasClass("show")){
+        s.toggleClass("show");
+    }else{
+        s.toggleClass("show");
+    }
 }
 
 Date.prototype.Format = function(fmt)
@@ -100,6 +107,7 @@ function kkd_dialog_ini(title,content)
 
 function kkd_dialog_close()
 {
+    $("html,body").animate({scrollTop: 0}, 500);
     $('.kkd-dialog-shadow').length ? $('.kkd-dialog-shadow').remove() : '';
     $('.kkd-dialog-wrap').length ? $('.kkd-dialog-wrap').remove() : '';
 }

@@ -178,22 +178,23 @@ a:focus {
 }
 .header .message{
     width:70px;
-    height:75px;
+    height:73px;
     position: absolute;
     right:240px;
     top:0;
 }
 .header .message img{
     display: block;
-    margin: 20px auto;
-    border: 1px solid #eaf4f8;
-    padding:2px;
+    margin: 15px auto 0px;
+    border: 1px solid #ededed;
+    border-radius: 5px;
+    padding: 8px;
     background-color: #eaf4f8;
 }
 .bubble {
     position: absolute;
-    top: 12px;
-    left: 40px;
+    top: 10px;
+    left: 47px;
     background-color: #e44c34;
     color: #fff;
     border-radius: 3px;
@@ -979,7 +980,7 @@ input[type="checkbox"]{
     display: block;
 }
 .media-body > p{
-    color: #666666;
+    color: #839bba;
     margin-top:12px;
 }
 .media-body, .media-left, .media-right {

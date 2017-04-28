@@ -10,18 +10,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Rank extends Base_Controller
 {
-
+    protected $file_number=0;
     function __construct()
 
     {
         parent::__construct();
         $this->load->model('rank_model');
-
     }
 
     public function index()
     {
-
+        $this->load->model('school_model');
+        $va_data = $this->school_model->get($this->school_id,'file_number');
+        $this->file_number = $va_data['file_number'];
         switch (REQUEST_METHOD) {
             case REQUEST_GET :
                 $teacher_id = intval($this->uri->segment(2, 0));
@@ -40,10 +41,7 @@ class Rank extends Base_Controller
     protected function rank_item($teacher_id)
     {
         //整合传入必要分页参数；
-        //todo
-        //关于file_number的输入问题；model默认当前版本；
-        //默认当前版本，当file_number == 'all' 时显示所有数据排行；
-        $where['file_number'] = $this->input->get('file_number');
+        $where['file_number'] = $this->file_number;
 
         $where['assessment_type'] = $this->input->get('assessment_type');
         $where['teacher_id'] = $teacher_id;
@@ -79,9 +77,7 @@ class Rank extends Base_Controller
     protected function rank_list()
     {
         //整合传入必要分页参数；
-        //todo
-        //关于file_number的输入问题；model默认当前版本；
-        $where['file_number'] = $this->input->get('file_number');
+        $where['file_number'] = $this->file_number;
 
         $where['assessment_type'] = $this->input->get('assessment_type');
         $where['teacher_subject'] = $this->input->get('teacher_subject');
@@ -102,7 +98,7 @@ class Rank extends Base_Controller
 
         // 返回数组；
         $ranklist = array();
-        $ranklist['data'] = $this->rank_model->get_rank_list($where, $limit, $total);
+        $datas = $this->rank_model->rank_list($where, $limit, $total);
 
         // 返回总条数
         $ranklist['total'] = $total;
@@ -115,12 +111,12 @@ class Rank extends Base_Controller
         
         //名次
         $places = ($where['page'] - 1) * $limit+1;
-
-        foreach( $ranklist['data'] as $key=>$value) {
+        foreach($datas as $key=>&$value) {
             //把名次插入到查询结果中，方便调用
-            $ranklist['data'][$key]->stu_place = $places;
+            $value['rank_number'] = $places;
             $places++;
         }
+        $ranklist['data'] = $datas;
 
         $this->ajax_return(200, MESSAGE_SUCCESS, $ranklist);
     }

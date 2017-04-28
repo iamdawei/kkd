@@ -265,7 +265,7 @@ class Assessment extends Base_Controller
         $config['allowed_types'] = KKD_UPLOAD_FILE;
         $config['max_size'] = 0;
         $config['file_name'] = $teacher_id."-".time();
-        //$config['overwrite'] = true;
+        $config['overwrite'] = true;
         $this->load->library('upload', $config);
         $res = $this->upload->do_upload('kkd_file');
 
@@ -407,6 +407,7 @@ class Assessment extends Base_Controller
         if (!$item_id) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
+
         $this->move_files($item_id,$this->input->post('files'),$this->input->post('imgs'));
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_id);
     }
@@ -468,6 +469,7 @@ class Assessment extends Base_Controller
         //2、循环删除file_real_name这个路径的文件
 
         //这个delete方法已经执行了数据库表的kkd_item_file同步删除操作
+
         $res = $this->assessment_item_model->delete($assessment_item_id);
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
@@ -501,6 +503,7 @@ class Assessment extends Base_Controller
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
+
         $this->move_files($assessment_item_id,$this->input->input_stream('files'),$this->input->input_stream('imgs'));
         $this->ajax_return(200, MESSAGE_SUCCESS);
     }
@@ -604,13 +607,23 @@ class Assessment extends Base_Controller
         $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
-        $item_status['auditor_datetime'] = date('Y-m-d');
+        $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
 
         $res = $this->assessment_item_model->put_status($item_array, $item_status);
 
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
+        //todo 这里产生消息；
+        $message = $this->assessment_item_model->get_item($assessment_item_id,'teacher_id,assessment_item_id,assessment_type,
+                                                assessment_name,item_title');
+        $this->load->model('message_model');
+        $message['item_status'] = 0;
+        $message['auditor_name'] = $this->teacher_name;
+        $message['auditor_datetime' ] = $item_status['auditor_datetime'];
+        $message['message_status'] = 1;
+        $this->message_model->add($message);
+
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_status);
     }
 
@@ -622,9 +635,22 @@ class Assessment extends Base_Controller
         $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
-        $item_status['auditor_datetime'] = date('Y-m-d');
+        $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
 
         $this->assessment_item_model->put_status($item_array,$item_status);
+        //todo 消息中心批量产生消息；
+        $message_array = $this->assessment_item_model->get_item($item_array,'teacher_id,assessment_item_id,assessment_type,
+                                                assessment_name,item_title');
+
+        foreach ($message_array as $k=>$value) {
+            $message_array[$k]->item_status = 0;
+            $message_array[$k]->auditor_name = $this->teacher_name;
+            $message_array[$k]->auditor_datetime = $item_status['auditor_datetime'];
+            $message_array[$k]->message_status = 1;
+        }
+        $this->load->model('message_model');
+        $this->message_model->add_batch($message_array);
+
         $this->ajax_return(200, MESSAGE_SUCCESS);
     }
 
@@ -643,6 +669,16 @@ class Assessment extends Base_Controller
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
+        //todo 消息中心同步更新；
+        $message = $this->assessment_item_model->get_item($assessment_item_id,'teacher_id,assessment_item_id,assessment_type,
+                                                assessment_name,item_title');
+        $this->load->model('message_model');
+        $message['item_status'] = 2;
+        $message['auditor_name'] = $this->teacher_name;
+        $message['auditor_datetime' ] = $item_status['auditor_datetime'];
+        $message['message_status'] = 1;
+        $this->message_model->add($message);
+
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_status);
     }
 

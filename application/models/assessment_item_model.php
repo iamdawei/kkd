@@ -166,6 +166,11 @@ class Assessment_item_model extends CI_Model
     {
         $cols = ($cols) ? $cols : $this->columns_detail;
         $this->db->select($cols);
+        if(is_array($assessment_item_id)){
+            $this->db->from('kkd_assessment_item');
+            $this->db->where_in('assessment_item_id',$assessment_item_id);
+            return $this->db->get()->result();
+        }
         $this->db->where('assessment_item_id',$assessment_item_id);
         $query = $this->db->get('kkd_assessment_item');
         return $query->row_array();

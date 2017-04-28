@@ -21,6 +21,7 @@
 <body>
 <header class="header">
     <div class="logo">课课达</div>
+    <a class="message" href="/Home/message"><img src="/images/common/icon-message.png" /><?php if($read_count) echo "<span class=\"bubble\">".$read_count."</span>"; ?></a>
     <div id="top-profile" class="top-profile">
         <a class="top-profile-user" href="javascript:void(0);">
             <img class="top-profile-user-img" src="<?php echo $_SESSION['user_photo']; ?>" width="50px" height="50px">
@@ -81,7 +82,7 @@
                                 echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-source\">资源中心</a></li>";
                                 break;
                             case '排行榜':
-                                echo "<li><a href=\"javascript:void(0);\" class=\"nav-icon-order\">排行榜</a></li>";
+                                echo "<li><a href=\"/Home/rank\" class=\"nav-icon-order\">排行榜</a></li>";
                                 break;
                             //教师身份的权限菜单
                             case '申请列表':
@@ -105,7 +106,6 @@
                                     {
                                         $ass2[] = "<li><a href=\"/Home/item?type=2&sid=$a_m->assessment_set_id\">$a_m->assessment_name</a></li>";
                                     }
-
                                 }
                                 //var_dump($ass1);
                                 if($ass0){

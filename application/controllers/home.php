@@ -13,6 +13,7 @@ class Home extends Base_Controller
     {
         parent::$is_ajax = 0;
         parent::__construct();
+
     }
 
     public function index()
@@ -224,6 +225,29 @@ class Home extends Base_Controller
 <script type=\"text/javascript\" src=\"/js/ajaxfileupload.js\"></script>";
         $this->load->view('header',$data);
         $this->load->view('item',$main);
+        $this->load->view('footer',$data);
+    }
+
+    public function message()
+    {
+        $this->load->view('header');
+        $this->load->view('message');
+        $this->load->view('footer');
+    }
+
+    public function rank()
+    {
+        $this->load->model('school_model');
+        $school_id = $this->school_id;
+        $va = $this->school_model->get($school_id);
+        $main['KKD_SCHOOL_CONFIG'] = json_encode($va);
+
+        $data['HEADER_CSS'] = "<link href=\"/js/select/css/cs-select.css\" rel=\"stylesheet\" type=\"text/css\" />
+                 <link href=\"/js/select/css/cs-skin-border.css\" rel=\"stylesheet\" type=\"text/css\" />";
+        $data['FOOTER_JAVASCRIPT'] = "<script src=\"/js/select/js/classie.js\" type=\"text/javascript\"></script>
+                <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>";
+        $this->load->view('header',$data);
+        $this->load->view('rank',$main);
         $this->load->view('footer',$data);
     }
 }

@@ -163,11 +163,11 @@ class Base_Controller extends CI_Controller
                     //教师
                     $this->load->model('teacher_model');
                     $where['teacher_id']=$sign['uid'];
-                    $data = $this->teacher_model->get_teacher($where,'teacher_id,teacher_photo,teacher_name,school_id');
+                    $data = $this->teacher_model->get_teacher($where,'teacher_id,teacher_photo,teacher_name,school_id,teacher_role');
                     if ($data) {
                         $u_auth = $this->set_user_auth($sign['uid']);
                         $this->user_auth_group = $u_auth;
-                        if((self::$is_ajax) === 0) $this->set_user_session($data['teacher_id'],$data['teacher_name'],$data['teacher_photo'],$sign['type'],$data['school_id']);
+                        if((self::$is_ajax) === 0) $this->set_user_session($data['teacher_id'],$data['teacher_name'],$data['teacher_photo'],$sign['type'],$data['school_id'],$data['teacher_role']);
                     }
                     break;
                 case 's' :
@@ -183,7 +183,7 @@ class Base_Controller extends CI_Controller
         }
     }
 
-    protected function set_user_session($u_id,$u_name,$u_photo,$u_type,$school_id)
+    protected function set_user_session($u_id,$u_name,$u_photo,$u_type,$school_id,$u_role)
     {
         session_start();
         $_SESSION['user_id'] = $u_id;
@@ -191,7 +191,12 @@ class Base_Controller extends CI_Controller
         $_SESSION['user_photo'] = $u_photo;
         $_SESSION['user_type'] = $u_type;
         $_SESSION['group_model'] = $this->user_auth_group;
-        $_SESSION['assessment_menu'] = $this->assessment_item_menu();
+        if(strpos($u_role,'100000') !== false){
+            $_SESSION['assessment_menu'] = $this->assessment_item_menu();
+            $this->load->model('message_model');
+            $datas['read_count'] = $this->message_model->read_count($u_id);
+            $this->load->vars($datas);
+        }
         $_SESSION['school_id']=$school_id;
 
         session_write_close();

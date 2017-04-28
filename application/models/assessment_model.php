@@ -106,7 +106,7 @@ class Assessment_model extends CI_Model
     {
         if(!is_array($where)) return -1;
         $this->db->from('kkd_assessment_set');
-        $this->db->join('kkd_school_config','kkd_assessment_set.school_id = kkd_school_config.school_id');
+        $this->db->join('kkd_school_config','kkd_assessment_set.file_number = kkd_school_config.file_number');
         $this->db->where($where);
         $this->db->select($cols);
         $this->db->order_by('assessment_type ASC');

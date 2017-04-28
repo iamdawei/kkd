@@ -1,16 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 /**
- * 消息中心控制器
- *管理角色CRUD操作
- *
+ * 个人消息中心控制器
  */
 
 class Message extends Base_Controller
 {
-    //测试；
-    protected $school_id = 1;
-
     protected $user_id = '';
 
     public function __construct()
@@ -22,7 +17,6 @@ class Message extends Base_Controller
 
     public function index()
     {
-
         switch (REQUEST_METHOD) {
             case REQUEST_GET :
                 $message_id = $this->uri->segment(2, 0);
@@ -38,8 +32,7 @@ class Message extends Base_Controller
                     $this->message_delete($message_id);
                     break;
                 case REQUEST_PUT :
-                    $message_id = $this->uri->segment(2,0);
-                    $this->message_update($message_id);
+                    $this->message_update();
                     break;
                 }
         }
@@ -49,7 +42,6 @@ class Message extends Base_Controller
         //整合传入必要分页参数；
         $where['teacher_id'] = $this->user_id;
         $where['page'] = intval($this->input->get('page'));
-        $where['school_id'] = $this->school_id;
 
         //确定每页显示，初始化总条数；
         $limit = 10;
@@ -63,7 +55,7 @@ class Message extends Base_Controller
 
         // 返回数组；
         $messagelist = array();
-        $messagelist['data'] = $this->message_model->get_message_list($where, $limit, $total,$new_message);
+        $messagelist['data'] = $this->message_model->get_list($where, $limit, $total,$new_message);
 
         //返回最新消息；
         $messagelist['new_message'] = $new_message;
@@ -82,16 +74,14 @@ class Message extends Base_Controller
 
     protected function message_info($message_id)
     {
-        $school_id = $this->school_id;
-        $data = $this->message_model->get_message($message_id,$school_id);
+        $data = $this->message_model->get_message($message_id);
         $this->ajax_return(200, MESSAGE_SUCCESS, $data);
     }
 
 
     protected function message_delete($message_id)
     {
-        $school_id = $this->school_id;
-        $res = $this->message_model->delete_message($message_id,$school_id);
+        $res = $this->message_model->delete($message_id);
         if($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
@@ -104,10 +94,20 @@ class Message extends Base_Controller
     //2 全部标记已读；无按钮？
     //以下put 方法 保留更改所有消息状态；
 
-    protected function message_update($message_id)
+    protected function message_update()
     {
-        $this->message_model->put_message($message_id);
+        $this->message_model->put($this->user_id);
         $this->ajax_return(200, MESSAGE_SUCCESS);
     }
 
+    //todo 以下为添加方法；
+    // 批量删除已读
+    protected function message_batch_delete()
+    {
+        $res = $this->message_model->delete_message_batch($this->user_id);
+        if($res < 0) {
+            $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
+        }
+        $this->ajax_return(200, MESSAGE_SUCCESS);
+    }
 }
