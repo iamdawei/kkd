@@ -25,7 +25,7 @@
         </div>
         <div class="media-body">
             <h5 class="media-heading">[auditor_name]<font class="item_status_[item_status]"> [item_status_txt] </font>了你发布的【[assessment_type]】【[assessment_name]】
-                <a class="color-1" href="/assessment/item/[assessment_item_id]" target="_blank">《[item_title]》</a></h5>
+                <a class="color-1" href="/Home/item?edit=[assessment_item_id]" target="_blank">《[item_title]》</a></h5>
             <p>[status_descript]</p>
         </div>
         <div class="media-right">

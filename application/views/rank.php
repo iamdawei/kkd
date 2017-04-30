@@ -1,26 +1,33 @@
 <style type="text/css">
-    .kkd-table.dialog>thead>tr>td, .kkd-table.dialog>thead>tr>th{color:#2258A0;font-size:14px;}
-    .kkd-table.dialog>thead>tr>th{border:none !important;}
-    .dialog-t-title{text-align: left;}
-    .dialog-t-time{text-align: right;}
     .kkd-table font{color:red;font-size:12px;}
-    .item-content-box{text-align: left;text-align: justify;}
-    .item-files{text-align: left;}
-    .item-files>li{height:34px;line-height:34px;display:inline-block;padding:3px 5px 3px 30px;}
-    .kkd-table>tfoot>tr>td {
-        background-color: #F3FBFD;
+    .rank{float:left;padding:5px 10px;margin-right:10px;}
+    .rank.order {
+        background: url('/images/common/icon-order.png') no-repeat  0 center;
+        padding:5px 10px 5px 30px;
+        margin-right:0px;
     }
-
-    .kkd-table font{color:red;font-size:12px;}
+    .rank.type{
+        padding:5px 15px;
+    }
+    .rank.type:hover,.rank.active{
+        -moz-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
+        -webkit-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
+        box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
+        -moz-border-radius: 15px;
+        -webkit-border-radius: 15px;
+        border-radius: 15px;
+        background-color:#0078ff;
+        color:#efefef;
+    }
 </style>
 <div class="main">
     <div class="main-warp">
-        <div class="main-title">排行榜</div>
+        <div class="main-title">排行榜<font style="font-size: 14px;color:#dedede;" id="count_person"></font></div>
         <div class="main-header">
-            <s class="nav-icon-order" href="javascript:void(0);">排序：</s>
-            <a class="rank_order" href="javascript:rank_order(0);">专业</a>
-            <a class="rank_order" href="javascript:rank_order(1);">素养</a>
-            <a class="rank_order" href="javascript:rank_order(2);">学术</a>
+            <span class="rank order" href="javascript:void(0);">排序：</span>
+            <a class="rank type active" href="javascript:rank_order(0);" data-rank="0">专业标准</a>
+            <a class="rank type" href="javascript:rank_order(1);" data-rank="1">素养标准</a>
+            <a class="rank type" href="javascript:rank_order(2);" data-rank="2">学术标准</a>
             <div class="search-warp">
                 <div class="select-box">
                     <select class="cs-select kkd-skin" id="s_teacher_grade">
@@ -50,8 +57,8 @@
                 <table class="kkd-table table-hover">
                     <thead>
                     <tr>
-                        <th>名词</th>
-                        <th>教师<font>点击查看详情</font></th>
+                        <th>排名</th>
+                        <th>教师<font> ( 点击查看详情 )</font></th>
                         <th>学科</th>
                         <th>年级</th>
                         <th>专业</th>
@@ -79,7 +86,7 @@
 <script type="text/template" id="template-assessment-data">
     <tr>
         <th>[rank_number]</th>
-        <td><a href="/Home/rank/[teacher_id]" target="_blank">[teacher_name]</a></td>
+        <td><a href="/Home/rank_info/[teacher_id]?user=[teacher_name]" target="_blank">[teacher_name]</a></td>
         <td class="txt" title="[assessment_name]">[teacher_subject]</td>
         <td class="txt" title="[item_title]">[grade_number]</td>
         <td>[sum_type0]</td>
@@ -89,6 +96,7 @@
 </script>
 <script type="text/javascript">
     var kkd_school_config = <?php echo $KKD_SCHOOL_CONFIG?>;
+    var select_assessment_type = 0;
     function search(pars)
     {
         var teacher_grade = $("#s_teacher_grade").val();
@@ -102,9 +110,18 @@
         s_data.push('grade_number='+teacher_grade);
         s_data.push('teacher_subject='+teacher_subject);
         s_data.push('keywords='+keywords);
+        s_data.push('assessment_type='+select_assessment_type);
 
         if(pars === 1) return s_data.join('&');
         else location_url(s_data.join('&'));
+    }
+
+    function rank_order(i)
+    {
+        select_assessment_type = i;
+        $(".type").removeClass('active');
+        $(".type").eq(i).addClass('active');
+        search();
     }
 
     function kkd_init(){
@@ -134,7 +151,7 @@
             dataType:'json',
             type:'get',
             beforeSend:function(){
-                $("#kkd-data-target").html('<tr><td colspan="6">'+ kkd_loading_txt +'</td></tr>');
+                $("#kkd-data-target").html('<tr><td colspan="7">'+ kkd_loading_txt +'</td></tr>');
             },
             success: load_success,
             error:kkd_ajax_error
@@ -146,17 +163,17 @@
             var temp = $("#template-assessment-data").html();
             var temp_data = [];
             if(result.data.data.length == 0) {
-                $("#kkd-data-target").html('<tr><td colspan="8">'+ kkd_nonedata_txt +'</td></tr>');
+                $("#kkd-data-target").html('<tr><td colspan="7">'+ kkd_nonedata_txt +'</td></tr>');
             }else{
-                console.log(result.data.data);
                 $(result.data.data).each(function(i,o){
-                    var ls = temp.replace('[rank_number]', o.rank_number).replace('[teacher_id]', o.teacher_id).replace('[teacher_name]', o.teacher_name)
+                    var ls = temp.replace('[rank_number]', o.rank_number).replace('[teacher_id]', o.teacher_id).replace(/\[teacher_name\]/g, o.teacher_name)
                         .replace('[teacher_subject]', o.teacher_subject).replace('[grade_number]', kkd_class_values[o.grade_number]+'年级')
                         .replace('[sum_type0]', o.sum_type0).replace('[sum_type1]', o.sum_type1).replace('[sum_type2]', o.sum_type2);
                     temp_data.push(ls);
                 });
                 $("#kkd-data-target").html(temp_data.join(''));
             }
+            $("#count_person").text(' ( 总人数：'+result.data.total+' )');
             pages_init(result.data.total,result.data.current_page,result.data.total_page);
         }
         else {

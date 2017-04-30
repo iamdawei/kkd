@@ -18,8 +18,12 @@ class Home extends Base_Controller
 
     public function index()
     {
+        $read_count = $this->load->get_var('read_count');
         $this->load->view('header');
-        $this->load->view('home');
+        if($read_count === null)
+            $this->load->view('home');
+        else
+            $this->load->view('home_teacher');
         $this->load->view('footer');
     }
 
@@ -200,6 +204,7 @@ class Home extends Base_Controller
         else{
             $sid = $this->input->get('sid');
             $asstype = $this->input->get('type');
+            if(!isset($sid) || !isset($asstype))  $this->direct('/Home/apply');
             $ass_item['assessment_set_id']=$sid;
             $ass_item['assessment_type']=$asstype;
         }
@@ -248,6 +253,21 @@ class Home extends Base_Controller
                 <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>";
         $this->load->view('header',$data);
         $this->load->view('rank',$main);
+        $this->load->view('footer',$data);
+    }
+
+    public function rank_info()
+    {
+        $main['teacher_id'] = $this->uri->segment(3, 0);
+        $main['teacher_name'] = $this->input->get('user');
+        if($main['teacher_id'] == $_SESSION['user_id']) $main['teacher_name'] = '我';
+
+        $data['HEADER_CSS'] = "<link href=\"/js/select/css/cs-select.css\" rel=\"stylesheet\" type=\"text/css\" />
+                 <link href=\"/js/select/css/cs-skin-border.css\" rel=\"stylesheet\" type=\"text/css\" />";
+        $data['FOOTER_JAVASCRIPT'] = "<script src=\"/js/select/js/classie.js\" type=\"text/javascript\"></script>
+                <script src=\"/js/select/js/selectFx.js\" type=\"text/javascript\"></script>";
+        $this->load->view('header',$data);
+        $this->load->view('rank_info',$main);
         $this->load->view('footer',$data);
     }
 }

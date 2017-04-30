@@ -1,10 +1,21 @@
 $.ajaxSetup({
     headers: {
         'TOKEN': $.cookie('token')
-    }
+    },
+    error:kkd_ajax_error
 });
+(function ($) {
+    $.getUrlParam = function (name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return decodeURI(r[2]);
+        return null;
+    }
+})(jQuery);
 //公共信息常量配置部分
-var KKD_CONST_LOGIN_USERNAME = '您输入的账号有误'
+var KKD_CONST_LOGIN_USERNAME = '您输入的账号有误';
+var KKD_MESSAGE_ERROR_PARAMETER = '请求参数不正确';
+
 var kkd_loading_txt = '<p class="kkd-loading"><img src="/images/loading.gif" /><br />正在载入数据...</p>';
 var kkd_nonedata_txt = '<p class="kkd-nonedata">别找了，真没东西啦~！</p>';
 var kkd_class_values = {0:'未设置',1:'一',2:'二',3:'三',4:'四',5:'五',6:'六'};

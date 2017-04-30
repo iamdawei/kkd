@@ -556,7 +556,7 @@ class Assessment extends Base_Controller
     //单条详细信息；
     protected function assessment_item_info($assessment_item_id)
     {
-        $data = $this->assessment_item_model->get_item($assessment_item_id);
+        $data = $this->assessment_item_model->get_item($assessment_item_id,'assessment_item_id,assessment_type,assessment_set_id,assessment_name,item_title,item_content,item_number,teacher_name,commit_datetime,item_status');
         $data['files'] = $this->assessment_item_model->get_item_file($assessment_item_id);
         $this->ajax_return(200, MESSAGE_SUCCESS, $data);
     }
@@ -598,7 +598,7 @@ class Assessment extends Base_Controller
         // 返回总页数
         $assessment_itemlist['total_page'] = ceil($total / $limit);
 
-        $this->ajax_return(200, MESSAGE_SUCCESS, $assessment_itemlist);
+        $this->ajax_return(200, MESSAGE_SUCCESS.$this->assessment_item_model->get_last_query(), $assessment_itemlist);
     }
 
     protected function assessment_item_pass($assessment_item_id)

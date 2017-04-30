@@ -21,7 +21,10 @@
 <body>
 <header class="header">
     <div class="logo">课课达</div>
-    <a class="message" href="/Home/message"><img src="/images/common/icon-message.png" /><?php if($read_count) echo "<span class=\"bubble\">".$read_count."</span>"; ?></a>
+    <?php if(isset($read_count)){
+        if($read_count) echo "<a class=\"message\" href=\"/Home/message\"><img src=\"/images/common/icon-message.png\" /><span class=\"bubble\">".$read_count."</span></a>";
+        else echo "<a class=\"message\" href=\"/Home/message\"><img src=\"/images/common/icon-message.png\" /></a>";
+    }?>
     <div id="top-profile" class="top-profile">
         <a class="top-profile-user" href="javascript:void(0);">
             <img class="top-profile-user-img" src="<?php echo $_SESSION['user_photo']; ?>" width="50px" height="50px">
@@ -63,7 +66,7 @@
                     }
                     break;
                 case '评估中心':
-                    echo "<li class=\"model\">评估中心</li>";
+                    echo "<li class=\"model\"><a href=\"/Home\">评估中心</a></li>";
                     foreach($group_name as $menu){
                         switch($menu){
                             case '考核标准':

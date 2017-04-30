@@ -36,40 +36,22 @@ class Rank extends Base_Controller
         }
     }
 
-
-   // 教师个人详细列表；
     protected function rank_item($teacher_id)
     {
-        //整合传入必要分页参数；
-        $where['file_number'] = $this->file_number;
-
+        if(!$teacher_id) $this->ajax_return(300, MESSAGE_ERROR_NON_DATA);
         $where['assessment_type'] = $this->input->get('assessment_type');
         $where['teacher_id'] = $teacher_id;
-        $where['page'] = intval($this->input->get('page'));
+        $page = intval($this->input->get('page'));
         $where['school_id'] = $this->school_id;
-
-        //确定每页显示，初始化总条数；
+        $where['file_number'] = $this->file_number;
         $limit = 10;
         $total = 0;
-
-        //默认起始页；
-        if (empty($where['page'])) {
-            $where['page'] = 1;
-        }
-
-        // 返回数组；
+        if (!$page) $page = 1;
         $ranklist = array();
-        $ranklist['data'] = $this->rank_model->get_item_list($where, $limit, $total);
-
-        // 返回总条数
+        $ranklist['data'] = $this->rank_model->get_item_list($where, $limit, $total,$page);
         $ranklist['total'] = $total;
-
-        // 返回当前页
-        $ranklist['current_page'] = $where['page'];
-
-        // 返回总页数
+        $ranklist['current_page'] = $page;
         $ranklist['total_page'] = ceil($total / $limit);
-
         $this->ajax_return(200, MESSAGE_SUCCESS, $ranklist);
     }
 
@@ -84,33 +66,28 @@ class Rank extends Base_Controller
         $where['grade_number'] = $this->input->get('grade_number');
         $where['keywords'] = $this->input->get('keywords');
 
-        $where['page'] = intval($this->input->get('page'));
+        $page = intval($this->input->get('page'));
         $where['school_id'] = $this->school_id;
 
-        //确定每页显示，初始化总条数；
         $limit = 10;
         $total = 0;
-
-        //默认起始页；
-        if (empty($where['page'])) {
-            $where['page'] = 1;
-        }
+        if (!$page) $page = 1;
 
         // 返回数组；
         $ranklist = array();
-        $datas = $this->rank_model->rank_list($where, $limit, $total);
+        $datas = $this->rank_model->rank_list($where, $limit, $total,$page);
 
         // 返回总条数
         $ranklist['total'] = $total;
 
         // 返回当前页
-        $ranklist['current_page'] = $where['page'];
+        $ranklist['current_page'] = $page;
 
         // 返回总页数
         $ranklist['total_page'] = ceil($total / $limit);
         
         //名次
-        $places = ($where['page'] - 1) * $limit+1;
+        $places = ($page - 1) * $limit+1;
         foreach($datas as $key=>&$value) {
             //把名次插入到查询结果中，方便调用
             $value['rank_number'] = $places;
