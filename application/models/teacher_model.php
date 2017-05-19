@@ -30,13 +30,9 @@ class Teacher_model extends CI_Model
     }
 
 
-    public function get_teacher_list($school_id, $teacher_class ,$teacher_subject,$keywords,$page = 1, $limit = 12, & $total = null)
+    public function get_teacher_list($school_id,$teacher_role, $teacher_class ,$teacher_subject,$keywords,$page = 1, $limit = 12, & $total = null)
     {
-        $school_id = intval($school_id);
-        $page = intval($page);
-        $limit = intval($limit);
         $start = ($page - 1) * $limit;
-
         if(! is_null($total))
         {
             $this->db->from('kkd_teacher');
@@ -54,6 +50,10 @@ class Teacher_model extends CI_Model
             if (! empty($keywords))
             {
                 $this->db->like('teacher_name', $keywords);
+            }
+            if(! empty($teacher_role))
+            {
+                $this->db->like('teacher_role',$teacher_role);
             }
             $this->db->where('school_id', $school_id);
             $total = $this->db->count_all_results();
@@ -76,6 +76,11 @@ class Teacher_model extends CI_Model
         {
             $this->db->like('teacher_name', $keywords);
         }
+
+        if(! empty($teacher_role))
+        {
+            $this->db->like('teacher_role',$teacher_role);
+        }
         $this->db->where('school_id', $school_id);
         $this->db->limit($limit, $start);
 
@@ -87,17 +92,11 @@ class Teacher_model extends CI_Model
         if(!is_array($where)) return -1;
         $cols = ($cols) ? $cols : $this->columns;
         $this->db->select($cols);
+        $this->db->from('kkd_teacher as tea');
+        $this->db->join( 'kkd_school as sch','tea.school_id = sch.school_id');
         $this->db->where($where);
-        $query = $this->db->get('kkd_teacher');
-        return $query->row_array();
-    }
-
-    public function get_teacher_class($uid)
-    {
-        $this->db->select('teacher_class_id,grade_number,class_number');
-        $this->db->where("teacher_id = $uid");
-        $query = $this->db->get('kkd_teacher_class');
-        return $query->result();
+        $this->db->where('school_open',1);
+        return $this->db->get()->row_array();
     }
 
     public function change_teacher_password($user_id, $newpass)
@@ -130,5 +129,22 @@ class Teacher_model extends CI_Model
         if($user_id !== 0) $this->db->where('teacher_id !=', $user_id);
         $query = $this->db->get('kkd_teacher');
         return $query->row_array();
+    }
+    public function set_teacher_class($teacher_id,$class_array,$ex_delete = true)
+    {
+        if($ex_delete === true) $this->delete_teacher_class($teacher_id);
+        $this->db->insert_batch('kkd_teacher_class',$class_array);
+    }
+    public function delete_teacher_class($teacher_id)
+    {
+        $this->db->where('teacher_id', $teacher_id);
+        $this->db->delete('kkd_teacher_class');
+        return $this->db->affected_rows();
+    }
+    //todo 批量修改：
+    public function put_teacher_batch($data)
+    {
+        $this->db->update_batch('kkd_teacher', $data,'teacher_id');
+        return $this->db->affected_rows();
     }
 }

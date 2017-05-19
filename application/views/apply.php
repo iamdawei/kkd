@@ -1,15 +1,4 @@
 <style type="text/css">
-    .kkd-table.dialog>thead>tr>td, .kkd-table.dialog>thead>tr>th{color:#2258A0;font-size:14px;}
-    .kkd-table.dialog>thead>tr>th{border:none !important;}
-    .dialog-t-title{text-align: left;}
-    .dialog-t-time{text-align: right;}
-    .kkd-table font{color:red;font-size:12px;}
-    .item-content-box{text-align: left;text-align: justify;}
-    .item-files{text-align: left;}
-    .item-files>li{height:34px;line-height:34px;display:inline-block;padding:3px 5px 3px 30px;}
-    .kkd-table>tfoot>tr>td {
-        background-color: #F3FBFD;
-    }
     /*1待审,0表示通过,2表示已驳回*/
     .t-edit.apply-1,.t-edit.apply-2{
         background: url('/images/common/t-edit.png') no-repeat 0 0;
@@ -56,7 +45,9 @@
                 <div class="select-box">
                     <input type="text" placeholder="要查找的项目名" id="keywords" class="form-control search" />
                 </div>
-                <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                <div class="select-box right">
+                    <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                </div>
             </div>
         </div>
         <div class="main-content">
@@ -67,7 +58,7 @@
                         <th>状态</th>
                         <th>类型</th>
                         <th>项目</th>
-                        <th>标题</th>
+                        <th>申请明细<font> ( 点击查看详情 )</font></th>
                         <th>提交日期</th>
                         <th>修改/删除</th>
                     </tr>
@@ -94,11 +85,35 @@
         <th class="item_status_[item_status]">[item_status_txt]</th>
         <td>[assessment_type]</td>
         <td class="txt" title="[assessment_name]">[assessment_name]</td>
-        <td class="txt" title="[item_title]">[item_title]</td>
+        <td class="txt" title="[item_title]"><a href="javascript:get_assessment_item_info('/assessment/source/[assessment_item_id]');">[item_title]</a></td>
         <td>[commit_datetime]</td>
         <td class="t-icons-warp"><a href="javascript:void(0);" onclick="kkd_edit([assessment_item_id],[item_status])" class="t-edit apply-[item_status]"></a>
             <a href="javascript:void(0);" onclick="kkd_delete([assessment_item_id],this,[item_status])" class="t-delete apply-[item_status]"></a></td>
     </tr>
+</script>
+<script type="text/template" id="template-assessment-item-info">
+    <table class="kkd-table dialog">
+        <thead>
+        <tr>
+            <th class="dialog-t-title">【[assessment_type]】[item_title]</th>
+            <th class="dialog-t-time">[teacher_name] [commit_datetime]</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td colspan="2">
+                <div class="item-content-box">
+                    [item_content]
+                </div>
+            </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="2"><ul class="item-files"><li class="icon-file"><span>文档附件：</span></li>[item_zip]</ul></td>
+        </tr>
+        </tfoot>
+    </table>
 </script>
 <script type="text/javascript">
     var kkd_item_status = ['已审核','待审核','已驳回'];

@@ -8,7 +8,7 @@
 
 class Assessment_model extends CI_Model
 {
-    protected $columns = 'assessment_set_id,assessment_type,assessment_name,have_title,have_content,have_zip,is_open,assessment_number,assessment_role,
+    protected $columns = 'assessment_set_id,assessment_type,assessment_name,have_title,have_content,have_zip,is_open,assessment_descript,max_number,assessment_number,assessment_role,
                           kkd_assessment_set.file_number';
 
 
@@ -129,5 +129,11 @@ class Assessment_model extends CI_Model
         $this->db->set('file_number','file_number + 1',FALSE);
         $this->db->update('kkd_school_config');
         return $this->db->affected_rows();
+    }
+    //一次性批量插入role函数；
+    public function add_role($role_array)
+    {
+        if(! is_array($role_array))return -1;
+        $this->db->insert_batch('kkd_assessment_role', $role_array);
     }
 }

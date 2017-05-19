@@ -5,7 +5,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * 个人中心控制器
  * 包括个人信息、修改密码、上传头像
  */
-class User extends Base_Controller
+class User extends API_Conotroller
 {
     protected $user_type = '';
     protected $user_id = '';
@@ -18,9 +18,6 @@ class User extends Base_Controller
 
     public function index()
     {
-        //测试；
-//        $_SESSION['user_id'] = 1;
-//        $this->user_type = 's';
         switch (REQUEST_METHOD) {
             case REQUEST_GET :
                 $this->user_info();
@@ -40,7 +37,7 @@ class User extends Base_Controller
             case 't' :
                 $where['teacher_id'] = $this->user_id;
                 $this->load->model('teacher_model');
-                $data = $this->teacher_model->get_teacher($where, 'teacher_name,teacher_role,teacher_subject,teacher_class,teacher_indution_date,teacher_account,teacher_photo');
+                $data = $this->teacher_model->get_teacher($where, 'teacher_name,teacher_role,teacher_gender,teacher_subject,teacher_class,teacher_born_date,teacher_indution_date,teacher_account,teacher_photo,school_name');
                 if ($data) {
                     $this->ajax_return(200, MESSAGE_SUCCESS, $data);
                 } else{

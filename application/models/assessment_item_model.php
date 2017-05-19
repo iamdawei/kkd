@@ -12,8 +12,6 @@
 
 class Assessment_item_model extends CI_Model
 {
-    //管理员取值
-    protected $columns_set = 'assessment_item_id,assessment_type,ai.assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime';
     //单条申请内容详细
     protected $columns_detail ='assessment_item_id,assessment_type,assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime,item_status';
     //用户个人申请记录；
@@ -58,15 +56,14 @@ class Assessment_item_model extends CI_Model
     }
 
     //管理员取列表；
-    public function get($where=array(), $limit = 10, & $total = null)
+    public function get($where=array(), $limit = 10, & $total = null,$page,$cols)
     {
-        $school_id = isset($where['school_id']) ? $where['school_id'] : null;
-        $teacher_id = isset($where['teacher_id']) ? $where['teacher_id'] : null;
+        $school_id = isset($where['school_id']) ? $where['school_id'] : 0;
+        $teacher_id = isset($where['teacher_id']) ? $where['teacher_id'] : 0;
         $assessment_type = isset($where['assessment_type']) ? $where['assessment_type'] : null;
         $keywords = isset($where['keywords']) ? $where['keywords'] : '';
+        $item_status = isset($where['item_status']) ? $where['item_status'] : 1;
 
-        $page = intval($where['page']);
-        $limit = intval($limit);
         $start = ($page - 1) * $limit;
 
         if (! is_null($total)) {
@@ -74,7 +71,7 @@ class Assessment_item_model extends CI_Model
             $this->db->join('kkd_assessment_role as ar','ai.assessment_set_id = ar.assessment_set_id');
             $this->db->join('kkd_teacher_role as tr','tr.role_id = ar.role_id');
             $this->db->where('ai.school_id',$school_id);
-            $this->db->where('ai.item_status',1);
+            $this->db->where('ai.item_status',$item_status);
             $this->db->where('tr.teacher_id',$teacher_id);
 
             if (! is_null($assessment_type)) {
@@ -89,12 +86,12 @@ class Assessment_item_model extends CI_Model
             $total = $this->db->count_all_results();
         }
 
-        $this->db->select($this->columns_set);
+        $this->db->select($cols);
         $this->db->from('kkd_assessment_item as ai');
         $this->db->join('kkd_assessment_role as ar','ai.assessment_set_id = ar.assessment_set_id','ai.school_id = ar.school_id');
         $this->db->join('kkd_teacher_role as tr','tr.role_id = ar.role_id');
         $this->db->where('ai.school_id',$school_id);
-        $this->db->where('ai.item_status',1);
+        $this->db->where('ai.item_status',$item_status);
         $this->db->where('tr.teacher_id',$teacher_id);
 
         if (! is_null($assessment_type)) {
@@ -104,7 +101,7 @@ class Assessment_item_model extends CI_Model
             $this->db->like('ai.assessment_name', $keywords);
         }
 
-        $this->db->order_by('ai.assessment_type');
+        $this->db->order_by('ai.commit_datetime DESC');
         $this->db->limit($limit, $start);
 
         return $this->db->get()->result();
@@ -116,14 +113,13 @@ class Assessment_item_model extends CI_Model
     public function get_list($where=array(), $limit = 10, & $total = null)
     {
 
-        $school_id = isset($where['school_id']) ? $where['school_id'] : null;
+        $school_id = isset($where['school_id']) ? $where['school_id'] : 0 ;
         $teacher_id = isset($where['teacher_id']) ? $where['teacher_id'] : null;
         $assessment_type = isset($where['assessment_type']) ? $where['assessment_type'] : null;
         $keywords = isset($where['keywords']) ? $where['keywords'] : '';
         $item_status = isset($where['item_status']) ? $where['item_status'] : null;
 
-        $page = intval($where['page']);
-        $limit = intval($limit);
+        $page = $where['page'];
         $start = ($page - 1) * $limit;
 
         if (! is_null($total)) {
@@ -195,5 +191,43 @@ class Assessment_item_model extends CI_Model
         $this->db->where('file_id', $file_id);
         $this->db->delete('kkd_item_file');
         return $this->db->affected_rows();
+    }
+
+    public function get_source_list($where=array(), $limit = 10, & $total = null,$page,$cols)
+    {
+        $assessment_type = isset($where['assessment_type']) ? $where['assessment_type'] : 0;
+        $keywords = isset($where['keywords']) ? $where['keywords'] : '';
+        $item_status = 0;
+        $school_id = $where['school_id'];
+
+        $start = ($page - 1) * $limit;
+
+
+        $this->db->from('kkd_assessment_item');
+        $this->db->where('school_id',$school_id);
+        $this->db->where('item_status',$item_status);
+        if (isset($where['assessment_type'])) $this->db->where('assessment_type', $assessment_type);
+        if (! empty($keywords)) $this->db->like('assessment_name', $keywords);
+        $total = $this->db->count_all_results();
+
+
+        $this->db->select($cols);
+        $this->db->from('kkd_assessment_item');
+        $this->db->where('school_id',$school_id);
+        $this->db->where('item_status',$item_status);
+        if (isset($where['assessment_type'])) $this->db->where('assessment_type', $assessment_type);
+        if (! empty($keywords)) $this->db->like('assessment_name', $keywords);
+        $this->db->order_by('commit_datetime desc');
+        $this->db->limit($limit, $start);
+
+        return $this->db->get()->result();
+    }
+    public function get_max_number($assessment_set_id,$teacher_id)
+    {
+        $this->db->from('kkd_assessment_item');
+        $this->db->where('assessment_set_id', $assessment_set_id);
+        $this->db->where('teacher_id', $teacher_id);
+        $res = $this->db->count_all_results();
+        return $res;
     }
 }

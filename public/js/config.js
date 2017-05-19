@@ -4,14 +4,14 @@ $.ajaxSetup({
     },
     error:kkd_ajax_error
 });
-(function ($) {
-    $.getUrlParam = function (name) {
-        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-        var r = window.location.search.substr(1).match(reg);
-        if (r != null) return decodeURI(r[2]);
-        return null;
-    }
-})(jQuery);
+
+getUrlParam = function (name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURI(r[2]);
+    return null;
+}
+
 //公共信息常量配置部分
 var KKD_CONST_LOGIN_USERNAME = '您输入的账号有误';
 var KKD_MESSAGE_ERROR_PARAMETER = '请求参数不正确';
@@ -85,7 +85,7 @@ function kkd_ajax_beforeSend()
 
 function kkd_ajax_complete()
 {
-    request_unlock()
+    request_unlock();
 }
 
 function kkd_ajax_error()
@@ -109,16 +109,17 @@ function request_unlock()
     obj.text(text);
 }
 
-function kkd_dialog_ini(title,content)
+function kkd_dialog_ini(title,content,cssClass)
 {
-    var temp_obj = '<div class="kkd-dialog-shadow"></div><div class="kkd-dialog-wrap"><div class="kkd-dialog-container"><div class="kkd-dialog-header"><span>[dialog-title]</span><a class="kkd-dialog-close" href="javascript:kkd_dialog_close();"></a></div><div class="kkd-dialog-content">[dialog-content]</div></div></div>';
-    temp_obj = temp_obj.replace('[dialog-title]',title).replace('[dialog-content]',content);
+    if(!cssClass) cssClass='';
+    var temp_obj = '<div class="kkd-dialog-shadow"></div><div class="kkd-dialog-wrap" style="top:50px;"><div class="kkd-dialog-container"><div class="kkd-dialog-header"><span>[dialog-title]</span><a class="kkd-dialog-close" href="javascript:kkd_dialog_close();"></a></div><div class="kkd-dialog-content [cssClass]">[dialog-content]</div></div></div>';
+    temp_obj = temp_obj.replace('[dialog-title]',title).replace('[dialog-content]',content).replace('[cssClass]',cssClass);
     $('body').append(temp_obj);
 }
 
 function kkd_dialog_close()
 {
-    $("html,body").animate({scrollTop: 0}, 500);
+    //$("html,body").animate({scrollTop: 0}, 500);
     $('.kkd-dialog-shadow').length ? $('.kkd-dialog-shadow').remove() : '';
     $('.kkd-dialog-wrap').length ? $('.kkd-dialog-wrap').remove() : '';
 }
@@ -153,8 +154,9 @@ function pages_init(total,current_page,total_page)
 
     //若当前页是第一页，则上一页按钮取消
     //非首页时，则有上一页
+    temp_data.push('<li><span class="total">共 '+total+' 条记录</span></li>');
     if(current_page == 1){
-        temp_data.push('<li><span class="previous">&nbsp;</a></span>');
+        temp_data.push('<li><span class="previous">&nbsp;</span></li>');
     }
     else if(current_page > 1){
         temp_data.push("<li><a href=\"javascript:location_url(" + (current_page-1) + ");\" class=\"previous\">&nbsp;</a></li>");
@@ -183,11 +185,68 @@ function pages_init(total,current_page,total_page)
 
 window.alert=function(txt){
     $.gritter.add({
-        position: 'bottom-right',
+        position: 'top-center',
         title: '温馨提示您',
         text: txt,
         class_name: 'clean',
         time: ''
     });
+};
+//调用案例：confirm('你确定要修改密码',function(){alert('OK');},function(){alert('cancel');});
+window.confirm=function(txt,ok,cancel){
+    var temp_obj = '<div class="kkd-dialog-shadow"></div><div class="kkd-dialog-wrap" style="top:150px;"><div class="kkd-dialog-container" style="min-width: 420px;width:420px;"><span class="kkd-confirm-icon"></span><div class="kkd-confirm-header"><a class="kkd-dialog-close" href="javascript:kkd_dialog_close();"></a></div><div class="kkd-confirm-content"><p class="txt">[dialog-content]</p></div>'+
+        '<div class="kkd-confirm-btns"><button class="btn btn-primary md" style="margin-right:20px;" type="button">确 定</button><button class="btn btn-cancel md" type="button">取 消</button></div></div></div>';
+    temp_obj = temp_obj.replace('[dialog-content]',txt);
+    $('body').append(temp_obj);
+    $(".kkd-confirm-btns>.btn").on('click',kkd_dialog_close);
+    $(".kkd-confirm-btns>.btn-primary").on('click',ok);
+    $(".kkd-confirm-btns>.btn-cancel").on('click',cancel);
+};
 
+//查看单条提交项详情
+function get_assessment_item_info(url,obj)
+{
+    var maincontent = '<table class="kkd-table dialog"><thead><tr><th class="dialog-t-title">【[assessment_type]】[item_title]</th><th class="dialog-t-time">[teacher_name] [commit_datetime]</th></tr>'
+        +'</thead><tbody><tr><td colspan="2"><div class="item-content-box">[item_content] </div></td> </tr> </tbody>' +
+        '<tfoot><tr><td colspan="2"><ul class="item-files"><li class="icon-file"><span>文档附件：</span></li>[item_zip]</ul></td></tr></tfoot></table>';
+    if(obj) maincontent = $(obj).html();
+
+    $.ajax({
+        url: url,
+        dataType:'json',
+        type:'get',
+        success:function(result){
+            if(result.code == 200) {
+                var o = result.data;
+
+                if(o.item_title){
+                    maincontent = maincontent.replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace('[item_title]', o.item_title)
+                        .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name).replace('[item_zip]',item_split_zip(o.files))
+                        .replace('[commit_datetime]', o.commit_datetime).replace('[item_content]', o.item_content).replace(/\[assessment_item_id\]/g, o.assessment_item_id);
+                }else
+                {
+                    maincontent = maincontent.replace('[assessment_type]', '被删除').replace('[item_title]', '该项目被删除了')
+                        .replace(/\[assessment_name\]/g, '').replace('[teacher_name]', '').replace('[item_zip]',item_split_zip(o.files))
+                        .replace('[commit_datetime]', '').replace('[item_content]', '').replace(/\[assessment_item_id\]/g, '');
+                }
+
+                kkd_dialog_ini('考核项目详情',maincontent,'table-style');
+            }else alert(result.info);
+        }
+    });
+}
+function item_split_zip(files)
+{
+    var temp_data = [];
+    var temp_str = "<li class=\"[class]\"><a href=\"/home/download?name=[name]&file=[file_real_name]\">[name]</a></li>";
+    $(files).each(
+        function(i,o){
+            var temp_fix = o.file_name.split('.');
+            var file_fix = temp_fix[temp_fix.length-1];
+            temp_data.push(temp_str.replace(/\[name\]/g,o.file_name).replace('[file_real_name]',o.file_real_name).replace('[class]',kkd_file_arr[file_fix]));
+
+        }
+    );
+    if(temp_data.length == 0) return "<li class='none'>无附件</li>";
+    else return temp_data.join('');
 }

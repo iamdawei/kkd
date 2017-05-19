@@ -1,24 +1,5 @@
 <style type="text/css">
-    .kkd-table font{color:red;font-size:12px;}
-    .rank{float:left;padding:5px 10px;margin-right:10px;}
-    .rank.order {
-        background: url('/images/common/icon-order.png') no-repeat  0 center;
-        padding:5px 10px 5px 30px;
-        margin-right:0px;
-    }
-    .rank.type{
-        padding:5px 15px;
-    }
-    .rank.type:hover,.rank.active{
-        -moz-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        -webkit-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        -moz-border-radius: 15px;
-        -webkit-border-radius: 15px;
-        border-radius: 15px;
-        background-color:#0078ff;
-        color:#efefef;
-    }
+
 </style>
 <div class="main">
     <div class="main-warp">
@@ -31,8 +12,7 @@
             <div class="search-warp">
                 <div class="select-box">
                     <select class="cs-select kkd-skin" id="s_teacher_grade">
-                        <option value="" disabled selected>年&nbsp;&nbsp;&nbsp;&nbsp;级</option>
-                        <option value="">年&nbsp;&nbsp;&nbsp;&nbsp;级</option>
+                        <option value="">所有年级</option>
                         <option value="1">一年级</option>
                         <option value="2">二年级</option>
                         <option value="3">三年级</option>
@@ -43,17 +23,20 @@
                 </div>
                 <div class="select-box">
                     <select class="cs-select kkd-skin" id="s_teacher_subject">
-                        <option value="" disabled selected>学&nbsp;&nbsp;&nbsp;&nbsp;科</option>
+                        <option value="" disabled selected>所有学科</option>
                     </select>
                 </div>
                 <div class="select-box">
                     <input type="text" placeholder="请输入您要查找的内容" id="s_keywords" class="form-control search" />
                 </div>
-                <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                <div class="select-box right">
+                    <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                </div>
             </div>
         </div>
         <div class="main-content">
             <div class="main-content-warp">
+                <div style="text-align: right;margin-bottom:10px;"><a style="font-size:12px;font-weight: normal;" href="/Home/save_excel" target="_blank">保存到Excel</a></div>
                 <table class="kkd-table table-hover">
                     <thead>
                     <tr>
@@ -135,7 +118,7 @@
         var ss =kkd_school_config['school_subject'];
         var vas = ss.split(',');
         var temp_data = [];
-        temp_data.push('<option value="">学&nbsp;&nbsp;&nbsp;&nbsp;科</option>');
+        temp_data.push('<option value="">所有学科</option>');
         var temp_model = '<option value="[value]">[value]</option>';
         for(var i =0 ;i<vas.length;i++)
         {

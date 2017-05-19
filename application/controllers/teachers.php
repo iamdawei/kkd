@@ -6,7 +6,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *  教师信息CRUD操作
  */
 
-class Teachers extends Base_Controller
+class Teachers extends API_Conotroller
 {
 
     function __construct()
@@ -50,6 +50,7 @@ class Teachers extends Base_Controller
         $teacher_class = $this->input->get('teacher_class');
         $teacher_subject = $this->input->get('teacher_subject');
         $keywords = $this->input->get('keywords');
+        $teacher_role = $this->input->get('teacher_role');
 
         //确定每页显示，初始化总条数；
         $limit = 12;
@@ -58,7 +59,7 @@ class Teachers extends Base_Controller
         if(empty($page)) { $page = 1; } //默认起始页；
 
         $teacherlist = array();  // 返回数组；
-        $teacherlist['data'] = $this->teacher_model->get_teacher_list($school_id, $teacher_class,$teacher_subject,$keywords,$page, $limit, $total);
+        $teacherlist['data'] = $this->teacher_model->get_teacher_list($school_id, $teacher_role,$teacher_class,$teacher_subject,$keywords,$page, $limit, $total);
         $teacherlist['total'] = $total;       // 返回总条数
         $teacherlist['current_page'] = $page;    // 返回当前页
         $teacherlist['total_page'] = ceil($total / $limit);     // 返回总页数
@@ -80,7 +81,7 @@ class Teachers extends Base_Controller
             'teacher_indution_date' => $this->input->post('teacher_indution_date'),
             'teacher_photo' => $this->input->post('teacher_photo'),
             'teacher_born_date' => $this->input->post('teacher_born_date'),
-            'teacher_register_datetime' => date('Y-m-d h-i-s'),
+            'teacher_register_datetime' => date('Y-m-d H-i-s'),
             'school_id' => $this->school_id
         );
 
@@ -90,19 +91,34 @@ class Teachers extends Base_Controller
         }
 
         $teacher_id = $this->teacher_model->add_teacher($data);
-
-        $this->load->model('auth_role_model');
-        $for_datas = explode(',',$data['teacher_role']);
-        $update_data  = array();
-        foreach($for_datas as $tempValue){
-            $ex_temp = explode(':',$tempValue);
-            array_push($update_data,array(
-                'teacher_id' => $teacher_id,
-                'role_id' => $ex_temp[0]
-            ));
+        $class = explode(',',$data['teacher_class']);
+        if($data['teacher_class'] && count($class)>0)
+        {
+            $class_array = array();
+            foreach($class as $Value) {
+                $ex_value = explode(':', $Value);
+                array_push($class_array, array(
+                    'teacher_id' => $teacher_id,
+                    'grade_number' => $ex_value[0],
+                    'class_number' => $ex_value[1],
+                ));
+            }
+            $this->teacher_model->set_teacher_class($teacher_id,$class_array,false);
         }
-        $upAuth = $this->auth_role_model->set_teacher_role($teacher_id,$update_data,'batch',false);
-        if($upAuth < 0) $this->ajax_return(400,"auth".MESSAGE_ERROR_DATA_WRITE);
+
+        $for_datas = explode(',',$data['teacher_role']);
+        if($data['teacher_role'] && count($for_datas)>0){
+            $role_data  = array();
+            foreach($for_datas as $tempValue){
+                $ex_temp = explode(':',$tempValue);
+                array_push($role_data,array(
+                    'teacher_id' => $teacher_id,
+                    'role_id' => $ex_temp[0]
+                ));
+            }
+            $this->load->model('auth_role_model');
+            $this->auth_role_model->set_teacher_role($teacher_id,$role_data,'batch',false);
+        }
 
         if (!$teacher_id)
         {
@@ -114,10 +130,13 @@ class Teachers extends Base_Controller
 
     protected function teacher_delete()
     {
+        $user_id = $this->HTTP_TOKEN_SIGN['uid'];
         $teacher_id = intval($this->uri->segment(2,0));
         $this->load->model('auth_role_model');
+        if($user_id == $teacher_id){$this->ajax_return(400,MESSAGE_ERROR_SELF_INFO);}
         $this->auth_role_model->delete_teacher_role($teacher_id);
         $res = $this->teacher_model->delete_teacher($teacher_id);
+        $this->teacher_model->delete_teacher_class($teacher_id);
         if ($res < 0)
         {
             $this->ajax_return(400,MESSAGE_ERROR_PARAMETER);
@@ -149,21 +168,42 @@ class Teachers extends Base_Controller
         }
         //更新前检查用户权限是否变更
         $where['teacher_id'] = $teacher_id;
-        $va = $this->teacher_model->get_teacher($where,'teacher_role');
+        $va = $this->teacher_model->get_teacher($where,'teacher_role,teacher_class');
         if($va['teacher_role'] != $data['teacher_role']){
             $this->load->model('auth_role_model');
             $for_datas = explode(',',$data['teacher_role']);
-            $update_data  = array();
-            foreach($for_datas as $tempValue){
-               $ex_temp = explode(':',$tempValue);
-               array_push($update_data,array(
-                    'teacher_id' => $teacher_id,
-                    'role_id' => $ex_temp[0]
-                ));
+            if($data['teacher_role'] && count($for_datas)>0){
+                $update_data  = array();
+                foreach($for_datas as $tempValue){
+                    $ex_temp = explode(':',$tempValue);
+                    array_push($update_data,array(
+                        'teacher_id' => $teacher_id,
+                        'role_id' => $ex_temp[0]
+                    ));
+                }
+                $this->auth_role_model->set_teacher_role($teacher_id,$update_data);
             }
-            $upAuth = $this->auth_role_model->set_teacher_role($teacher_id,$update_data);
-            if($upAuth < 0) $this->ajax_return(400,"auth".MESSAGE_ERROR_DATA_WRITE);
+            else $this->auth_role_model->delete_teacher_role($teacher_id);
         }
+
+        if($va['teacher_class'] != $data['teacher_class']) {
+            $class = explode(',', $data['teacher_class']);
+            if($data['teacher_class'] && count($class)>0) {
+                $class_array = array();
+                foreach ($class as $Value) {
+                    $ex_value = explode(':', $Value);
+                    array_push($class_array, array(
+                        'teacher_id' => $teacher_id,
+                        'grade_number' => $ex_value[0],
+                        'class_number' => $ex_value[1]
+                    ));
+                }
+
+                if ($class_array) $this->teacher_model->set_teacher_class($teacher_id, $class_array);
+            }
+            else $this->teacher_model->delete_teacher_class($teacher_id);
+        }
+
         $res = $this->teacher_model->update_teacher_info($teacher_id,$data);
 
         if($res < 0)
@@ -172,65 +212,6 @@ class Teachers extends Base_Controller
         }
         $this->ajax_return(200,MESSAGE_SUCCESS);
     }
-
-    public function teacher_photo_upload()
-    {
-        if(REQUEST_METHOD != REQUEST_POST ) $this->ajax_return(400,MESSAGE_ERROR_PARAMETER);
-        $teacher_id = intval($this->input->post('teacher_id'));
-
-        if(! file_exists("./upload/teacher"))
-        {
-
-            mkdir("./upload/teacher",0777,true);    //make_filed_to_save
-
-        }
-
-        $config['upload_path'] = "./upload/teacher";//upload_save_filed
-        $config['allowed_types'] = 'gif|jpg|png';
-        $config['file_name'] = $teacher_id."?".time();
-        $config['max_size'] = '20000';
-        $this->load->library('upload',$config);
-        $res = $this->upload->do_upload('teacher_photo'); //upload
-
-        if(! $res)
-        {
-            $this->ajax_return(400,MESSAGE_ERROR_PARAMETER);
-        }
-
-        //make_small_thumb;
-        if(! file_exists("./upload/teacher/small_thumb")){
-
-            mkdir("./upload/teacher/small_thumb",0777,true);
-
-        }
-
-        $data = $this->upload->data();
-
-        $config_small_thumb = array(
-            'image_library' => 'gd2',       //image_sdk;
-            'source_image'  => $data['full_path'],
-            'new_image'     => "./upload/teacher/small_thumb/",
-            'create_thumb'  => true,       //sure_to_make
-            'maintain_ratio'=> true,
-            'width'         => 198,        //to_be_official_size
-            'height'        => 300,
-            'thumb_marker'  => ""
-        );
-
-        $this->load->library('image_lib',$config_small_thumb);
-        $this->image_lib->initialize($config_small_thumb);
-        $this->image_lib->resize();       //make_small_thumb
-
-        $img['teacher_photo'] = KKD_HOST."/upload/teacher/small_thumb/".$data['file_name'];
-
-        //写入数据库
-        $res = $this->teacher_model->update_teacher_info($teacher_id,$img);
-        if($res < 0 ){
-            $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
-        }
-        $this->ajax_return(200,MESSAGE_SUCCESS,$img['teacher_photo']);
-    }
-
 
     public function update_password()
     {
@@ -241,7 +222,7 @@ class Teachers extends Base_Controller
         $res = $this->teacher_model->update_password($teacher_id,DEFAULT_PASSWORD);
         if($res < 0)
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
-        else $this->ajax_return(200, MESSAGE_SUCCESS,$this->teacher_model->get_last_query());
+        else $this->ajax_return(200, MESSAGE_SUCCESS);
     }
 
 }

@@ -2,6 +2,16 @@
     .form-user-edit{margin-top: 20px;}
     .form-user-edit .input-group{float:none;border-top: none;}
     .child-title font{color:red;font-size:12px;}
+    .explain{
+        width:320px;
+        height:72px;
+        font-size: 12px;
+        border-color:#ddd;
+        overflow: auto;
+        color: #999999;
+        resize:none;
+    }
+    .add_role{display: none;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -27,7 +37,9 @@
                 <div class="select-box">
                     <input type="text" placeholder="要查找的项目名" id="keywords" class="form-control search" />
                 </div>
-                <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                <div class="select-box right">
+                    <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                </div>
             </div>
         </div>
         <div class="main-content">
@@ -75,23 +87,40 @@
             </div>
         </div>
         <div class="input-group">
-            <label class="control-label" for="assessment_name">项目 :</label>
+            <label class="control-label"  for="assessment_name">项目名称 :</label>
             <input type="text" placeholder="如：集团项目示范课" id="assessment_name" maxlength="15" name="assessment_name" class="form-control">
         </div>
+
+        <div class="input-group">
+            <label  class="control-label" for="assessment_descript">项目说明 :</label>
+            <textarea placeholder="请填写 80 字以内的项目说明" id="assessment_descript" maxlength="80" name="assessment_descript" class="form-control explain"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label class="control-label label_exoplain" for="max_number">可提交数 :</label>
+            <div class="form-control kkd-icheck">
+                <div class="spinner" data-trigger="spinner">
+                    <button class="decrease" type="button" data-spin="down">-</button>
+                    <input class="kkd-spinner" name="max_number" id="max_number" type="text" data-min="1" value="1" data-rule="defaults" type="text" />
+                    <button class="increase" type="button" data-spin="up">+</button>
+                </div>
+            </div>
+        </div>
+
         <div class="child-title">组件设置<font> ( 可多选 )</font></div>
         <div class="input-group">
             <label class="control-label">组件 :</label>
             <div class="form-control kkd-icheck">
                 <ul id="kkd-checkbox-group">
-                    <li><input type="checkbox" value="1" id="have_title" name="have_title"><label for="have_title">标题</label></li>
-                    <li><input type="checkbox" value="1" id="have_content" name="have_content"><label for="have_content">内容</label></li>
-                    <li><input type="checkbox" value="1" id="have_zip" name="have_zip"><label for="have_zip">附件</label></li>
+                    <li><input type="checkbox" value="1" id="have_title" name="have_title" checked><label for="have_title">标题</label></li>
+                    <li><input type="checkbox" value="1" id="have_content" name="have_content" checked><label for="have_content">内容</label></li>
+                    <li><input type="checkbox" value="1" id="have_zip" name="have_zip" checked><label for="have_zip">附件</label></li>
                 </ul>
             </div>
         </div>
         <div class="child-title yellow">分值设置<font> ( 如果未负数则表示扣分 )</font></div>
         <div class="input-group">
-            <label class="control-label">得分 :</label>
+            <label class="control-label" for="assessment_number">得分 :</label>
             <div class="form-control kkd-icheck">
                 <div class="spinner" data-trigger="spinner">
                     <button class="decrease" type="button" data-spin="down">-</button>
@@ -105,7 +134,11 @@
             <label class="control-label">审核上级 :</label>
             <div class="form-control kkd-icheck">
                 <ul id="kkd-checkbox-role">
+
                 </ul>
+                <div class="add_role">
+                    <a href="http://www.kkd.com/Home/role" class="btn" target="_blank">添加角色</a>
+                </div>
             </div>
         </div>
         <div class="clearfix" style="text-align: center;">
@@ -148,12 +181,16 @@
         //验证参数
         var assessment_name = $.trim($("#assessment_name").val());
         if(assessment_name.length < 1 || assessment_name.length >15) return alert('请设置15字以内的项目名');
-        $("#assessment_name").val(assessment_name);
+        var assessment_descript = $.trim($("#assessment_descript").val());
+        if(assessment_descript.length < 1 || assessment_descript.length >15) return alert('请填写 80 字以内的请项目说明');
+
         var have_title = $("#have_title").prop('checked');
         var have_content = $("#have_content").prop('checked');
         var have_zip = $("#have_zip").prop('checked');
         if($("#assessment_number").val() == 0) return alert('分值不能为 0 噢');
 
+        $("#assessment_name").val(assessment_name);
+        $("#assessment_descript").val(assessment_descript);
         //组织请求体
         var req_datas = $("#kkd-assessment-edit").serialize();
         if(req_datas.indexOf('&assessment_role') < 0) return alert('请设置审核角色');
@@ -183,17 +220,19 @@
             alert('已发布，不能删除啦~');
             return;
         }
-        $.ajax({
-            url: '/assessment/'+uid,
-            dataType:'json',
-            type:'delete',
-            success:function(data){
-                if(data.code == 200) {
-                    $(obj).parent().parent().addClass('disabled');
-                    $(obj).parent().parent().children("th").text('[已删除]');
+        confirm('是否删除此考核标准？',function(){
+            $.ajax({
+                url: '/assessment/'+uid,
+                dataType:'json',
+                type:'delete',
+                success:function(data){
+                    if(data.code == 200) {
+                        $(obj).parent().parent().addClass('disabled');
+                        $(obj).parent().parent().children("th").text('[已删除]');
+                    }
+                    else alert(data.info);
                 }
-                else alert(data.info);
-            }
+            });
         });
     }
     function update_assessment(uid,is_open)
@@ -222,7 +261,8 @@
                 if(result.code == 200) {
                     $("#assessment_name").val(result.data.assessment_name);
                     $("#assessment_number").val(result.data.assessment_number);
-
+                    $('#assessment_descript').val(result.data.assessment_descript);
+                    $('#max_number').val(result.data.max_number);
                     $("input[name='assessment_type']").eq(result.data.assessment_type).iCheck('check');
 
                     (result.data.have_title==1)?$("#have_title").iCheck('check'):'';
@@ -250,16 +290,18 @@
             alert('不能重复发布噢');
             return;
         }
-        $.ajax({
-            url: '/assessment/open/'+uid,
-            dataType:'json',
-            type:'put',
-            success:function(data){
-                if(data.code == 200) {
-                    kkd_data_init();
+        confirm('是否发布此考核标准？',function(){
+            $.ajax({
+                url: '/assessment/open/'+uid,
+                dataType:'json',
+                type:'put',
+                success:function(data){
+                    if(data.code == 200) {
+                        kkd_data_init();
+                    }
+                    else alert(data.info);
                 }
-                else alert(data.info);
-            }
+            });
         });
     }
 
@@ -362,11 +404,13 @@
         $('#kkd-checkbox-role').html('');
         var stemp_role = '<li><input type="checkbox" value="[data-value]" id="icbs-role-[id]" name="assessment_role[]"><label for="icbs-role-[id]">[value]</label></li>';
         var temp_data = [];
+        if(kkd_roles.length==0) $('.add_role').show();
         for(var irole = 0 ;irole < kkd_roles.length ;irole++)
         {
             var ls = stemp_role.replace(/\[id\]/g, kkd_roles[irole]['role_id']).replace('[data-value]',kkd_roles[irole]['role_id']+":"+kkd_roles[irole]['role_name']).replace('[value]',kkd_roles[irole]['role_name']);
             temp_data.push(ls);
         }
+
         $('#kkd-checkbox-role').html(temp_data.join(''));
 
         $('#kkd-checkbox-type input,#kkd-checkbox-group input,#kkd-checkbox-role input').iCheck({

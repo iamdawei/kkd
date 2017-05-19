@@ -9,33 +9,34 @@
         padding:40px 20px 20px 100px;
         margin:0 20px 20px 0;
         display: inline-block;
-        border:1px solid #DDDDDD;
+        border:1px solid #eeeeee;
         -moz-border-radius: 5px;
         -webkit-border-radius: 5px;
         border-radius: 5px;
     }
     .role-list > li.role_0{
-        background:#eaf4f8 url('/images/role_0.png') no-repeat 10px center;
+        background:#f8fbff url('/images/role_0.png') no-repeat 10px center;
         background-size: 80px;
     }
     .role-list > li.role_1{
-        background:#eaf4f8 url('/images/role_1.png') no-repeat 10px center;
+        background:#f8fbff url('/images/role_1.png') no-repeat 10px center;
         background-size: 80px;
     }
     .role-list > li.role_2{
-        background:#eaf4f8 url('/images/role_2.png') no-repeat 10px center;
+        background:#f8fbff url('/images/role_2.png') no-repeat 10px center;
         background-size: 80px;
     }
     .role-list > li:hover{
-        -moz-box-shadow: 0px 2px 5px #DDDDDD;
-        -webkit-box-shadow: 0px 2px 5px #DDDDDD;
-        box-shadow: 0px 2px 5px #DDDDDD;
+        -moz-box-shadow: 0px 2px 10px #DDDDDD;
+        -webkit-box-shadow: 0px 2px 10px #DDDDDD;
+        box-shadow: 0px 2px 10px #DDDDDD;
     }
     .role-list > li.role-add{
         padding:40px 20px 20px 150px;
-        background:#eaf4f8 url('/images/common/add-role.png') no-repeat 60px center;
+        background:#f8fbff url('/images/common/add-role.png') no-repeat 60px center;
         background-size: 80px 80px;
         line-height: 50px;
+        cursor: pointer;
     }
     .role-list > li.load{
         width:100%;
@@ -60,16 +61,15 @@
         height:50px;
         display: block;
     }
-    .icon-box{position:relative;bottom:0px;text-align: right;font-size: 0px;margin-right:-20px;}
+    .icon-box{position:relative;bottom:0px;text-align: right;font-size: 0px;padding-right:0px;}
     .t-edit{
-        background: url('/images/common/t-edit-hover.png') no-repeat 0 0;
     }
     .t-delete{
-        background: url('/images/common/t-delete-hover.png') no-repeat 0 0;
+
     }
     .form-content{width: 70%;margin:0px auto;}
 
-    .kkd-dialog-wrap .kkd-dialog-container{width:400px;}
+    .kkd-dialog-wrap .kkd-dialog-container{width:550px;min-width:550px;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -98,14 +98,14 @@
 <script type="text/template" id="template-role-data">
     <li class="role_[class]">
         <span>[role_name]</span>
-        <div class="icon-box"><a href="javascript:void(0);" onclick="update_role([role_id],'[role_name]')" class="t-edit"></a>
-            <a href="javascript:void(0);" onclick="kkd_delete([role_id],this)" class="t-delete"></a></div>
+        <div class="icon-box"><a href="javascript:void(0);" onclick="update_role([role_id],'[role_name]')" class="t-edit t-status-0"></a>
+            <a href="javascript:void(0);" onclick="kkd_delete([role_id],this)" class="t-delete t-status-0"></a></div>
     </li>
 </script>
 <script type="text/javascript">
     var kkd_form_save_type = 'post';
     var kkd_form_save_url = '/role';
-    var add_role_obj = "<li class=\"role-add\"><a href=\"javascript:add_role();\">添加新角色</a></li>";
+    var add_role_obj = "<li class=\"role-add\" onclick='add_role()'>添加新角色</li>";
     function add_role(){
         kkd_form_save_type = 'post';
         kkd_form_save_url = '/role';
@@ -127,16 +127,18 @@
 
     function kkd_delete(uid,obj)
     {
-        $.ajax({
-            url:"/role/"+uid,
-            dataType:'json',
-            type:'delete',
-            success:function(result){
-                if(result.code == 200) {
-                    $(obj).parent().parent().hide(1000,function(){$(this).remove();});
+        confirm('是否删除该角色？',function(){
+            $.ajax({
+                url:"/role/"+uid,
+                dataType:'json',
+                type:'delete',
+                success:function(result){
+                    if(result.code == 200) {
+                        $(obj).parent().parent().hide(1000,function(){$(this).remove();});
+                    }
+                    else alert(result.info);
                 }
-                else alert(result.info);
-            }
+            });
         });
     }
 

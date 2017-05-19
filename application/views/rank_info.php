@@ -1,31 +1,12 @@
 <style type="text/css">
-    .kkd-table font{color:red;font-size:12px;}
-    .rank{float:left;padding:5px 10px;margin-right:10px;}
-    .rank.order {
-        background: url('/images/common/icon-order.png') no-repeat  0 center;
-        padding:5px 10px 5px 30px;
-        margin-right:0px;
-    }
-    .rank.type{
-        padding:5px 15px;
-    }
-    .rank.type:hover,.rank.active{
-        -moz-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        -webkit-box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        box-shadow: 0px 5px 15px rgba(0, 120, 255,0.4);
-        -moz-border-radius: 15px;
-        -webkit-border-radius: 15px;
-        border-radius: 15px;
-        background-color:#0078ff;
-        color:#efefef;
-    }
+
 </style>
 <div class="main">
     <div class="main-warp">
         <div class="main-title"><?php echo $teacher_name; ?>的考核项目明细</div>
         <div class="main-header">
             <span class="rank order" href="javascript:void(0);">排序：</span>
-            <a class="rank type active" href="javascript:rank_order(0);" data-rank="0">专业标准</a>
+            <a class="rank type" href="javascript:rank_order(0);" data-rank="0">专业标准</a>
             <a class="rank type" href="javascript:rank_order(1);" data-rank="1">素养标准</a>
             <a class="rank type" href="javascript:rank_order(2);" data-rank="2">学术标准</a>
         </div>
@@ -36,7 +17,7 @@
                     <tr>
                         <th>项目</th>
                         <th>分值</th>
-                        <th>内容</th>
+                        <th>申请明细<font> ( 点击查看详情 )</font></th>
                         <th>提交日期</th>
                         <th>核准人</th>
                     </tr>
@@ -62,7 +43,7 @@
     <tr>
         <td class="txt" title="[assessment_name]">[assessment_name]</td>
         <td>[item_number]</td>
-        <td class="txt" title="[item_title]">[item_title]</td>
+        <td class="txt" title="[item_title]"><a href="javascript:get_assessment_item_info('/assessment/source/[assessment_item_id]');">[item_title]</a></td>
         <td>[commit_datetime]</td>
         <td>[auditor_name]</td>
     </tr>
@@ -77,7 +58,9 @@
             return alert(KKD_MESSAGE_ERROR_PARAMETER);
         }
         request_page = request_page+teacher_id;
-        kkd_data_init(request_page+'?assessment_type=0');
+        var select_assessment_type = getUrlParam('t');
+        (select_assessment_type == null) && (select_assessment_type = 0);
+        rank_order(select_assessment_type);
     }
 
     function kkd_data_init(url){
@@ -101,7 +84,7 @@
             }else{
                 $(result.data.data).each(function(i,o){
                     var ls = temp.replace(/\[assessment_name\]/g, o.assessment_name).replace('[item_number]', o.item_number).replace(/\[item_title\]/g, o.item_title)
-                        .replace('[commit_datetime]', o.commit_datetime).replace('[auditor_name]', o.auditor_name);
+                        .replace('[commit_datetime]', o.commit_datetime).replace('[auditor_name]', o.auditor_name).replace(/\[assessment_item_id\]/g,o.assessment_item_id);
                     temp_data.push(ls);
                 });
                 $("#kkd-data-target").html(temp_data.join(''));

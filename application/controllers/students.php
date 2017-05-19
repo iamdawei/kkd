@@ -6,7 +6,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *  学生信息CRUD操作
  */
 
-class Students extends Base_Controller
+class Students extends API_Conotroller
 {
 
     function __construct()

@@ -43,8 +43,8 @@
                 <hr class="clearfix" />
                 <div class="title">账号管理</div>
                 <p class="user-info">
-                    账号：<font id="user-account"></font><br />
-                    密码：**********
+                    账&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号：<font id="user-account"></font><br />
+                    密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：**********
                 </p>
                 <div class="clearfix" style="text-align: center;margin:100px 0 40px;">
                     <button class="btn btn-primary lg" data-lock-txt="重置中..." data-unlock-txt="重置密码" type="button" onclick="change_password_dialog()">修改密码</button>
@@ -87,14 +87,19 @@
         });
     }
     function load_success(result)
-    {
+    {//school_name teacher_gender teacher_born_date
         if(result.code == 200 ){
             var temp_data = [];
-            temp_data.push('姓名：'+result.data.teacher_name);
-            temp_data.push('<br />角色：'+kkd_data_format(result.data.teacher_role,'role'));
-            temp_data.push('<br />入职时间：'+result.data.teacher_indution_date);
-            temp_data.push('<br />任教学科：'+result.data.teacher_subject);
+            var teacher_subject = result.data.teacher_subject;
+            (teacher_subject)?'':teacher_subject='未设置';
+            temp_data.push('姓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：'+result.data.teacher_name);
+            temp_data.push('<br />学&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;校：'+result.data.school_name);
+            temp_data.push('<br />性&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;别：'+result.data.teacher_gender);
+            temp_data.push('<br />出生年月：'+result.data.teacher_born_date);
+            temp_data.push('<br />任教学科：'+teacher_subject);
             temp_data.push('<br />任教班级：'+kkd_data_format(result.data.teacher_class,'class'));
+            temp_data.push('<br />角&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;色：'+kkd_data_format(result.data.teacher_role,'role'));
+            temp_data.push('<br />入职时间：'+result.data.teacher_indution_date);
             $("#main-content").html(temp_data.join(''));
             $("#teacher_photo").attr('src',result.data.teacher_photo);
 
@@ -106,6 +111,7 @@
     }
     function kkd_data_format(source,type)
     {
+        if(source == null || source == '') return '未设置';
         var temp_data = [];
         var ibs=source.split(',');
         if(type === 'role'){
@@ -119,11 +125,8 @@
             for(var i =0;i<ibs.length;i++)
             {
                 var ins=ibs[i].split(':');
-                for(var j=0;j<ins[1];j++)
-                {
-                    var ls = kkd_class_values[ins[0]]+'（'+(j+1)+'）班';
-                    temp_data.push(ls);
-                }
+                var ls = kkd_class_values[ins[0]]+'（'+ins[1]+'）班';
+                temp_data.push(ls);
             }
         }
         return temp_data.join('，');

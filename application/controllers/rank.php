@@ -8,11 +8,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * 暂时提供get接口 待有需求再增加；
  */
 
-class Rank extends Base_Controller
+class Rank extends API_Conotroller
 {
     protected $file_number=0;
     function __construct()
-
     {
         parent::__construct();
         $this->load->model('rank_model');
@@ -55,10 +54,8 @@ class Rank extends Base_Controller
         $this->ajax_return(200, MESSAGE_SUCCESS, $ranklist);
     }
 
-    // 排行榜整体列表；
     protected function rank_list()
     {
-        //整合传入必要分页参数；
         $where['file_number'] = $this->file_number;
 
         $where['assessment_type'] = $this->input->get('assessment_type');
@@ -97,5 +94,4 @@ class Rank extends Base_Controller
 
         $this->ajax_return(200, MESSAGE_SUCCESS, $ranklist);
     }
-
 }

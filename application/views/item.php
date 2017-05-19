@@ -8,7 +8,7 @@
 
     .kkd-group{margin: 30px 0px;}
     .kkd-group > .title,.kkd-group > .content,.item-files{display:inline-block;}
-    .kkd-group > select {padding:6px 12px;}
+    .kkd-group > select,.kkd-group > select> option {padding:6px 12px;}
 
     .item-files>li.delete-file{border:1px solid #ffffff;}
     .item-files>li.delete-file:hover{background-color:#eaf4f8;border:1px solid #dfdfdf;}
@@ -27,7 +27,16 @@
     .note-editor .dropdown-menu pre{margin:0 0 10px;}
     .note-editor .dropdown-menu h1,.note-editor .dropdown-menu h2,.note-editor .dropdown-menu h3,
     .note-editor .dropdown-menu h4,.note-editor .dropdown-menu h5,.note-editor .dropdown-menu h6{line-height: 1.1;}
-
+    
+    .popover{  color: #666666;}
+    .explain_item{
+        height:40px;
+        border: solid #999 1px;;
+        color: #999;
+        display: inline-block;
+        overflow: auto;
+        font-size: 12px;
+    }
 </style>
 
 <div class="main">
@@ -42,7 +51,12 @@
                 </div>
                 <div class="kkd-group">
                     <div class="title">标题：</div>
-                    <input type="text" placeholder="标题长度在 15 字以内" maxlength="15" id="item_title" name="item_title" class="content form-control col-4" value="<?php echo $item_title;?>" >
+                    <input type="text" placeholder="标题长度在 30 字以内" maxlength="30" id="item_title" name="item_title" class="content form-control col-4" value="<?php echo $item_title;?>" >
+                </div>
+                <div class="kkd-group">
+                    <div class="title">说明：</div>
+                    <div class="<?php echo $item_title;?>">
+                    </div>
                 </div>
                 <div class="kkd-group">
                     <div class="title yellow">内容：</div>
@@ -124,7 +138,7 @@
         var item_content = $('#summernote').summernote('code');
         var item_title = $('#item_title').val();
         var assessment_name = $.trim($("#assessment_name").val());
-        if(item_title.length < 1 || item_title.length >15) return alert('标题长度在15字以内');
+        if(item_title.length < 1 || item_title.length >30) return alert('标题长度在 30 字以内');
 
         if(item_content == 0) return alert('请输入内容');
         item_content=item_content.replace(/src=\"\/upload\/item_img\/temp\//g,'src="/upload/item_img/');
@@ -154,9 +168,19 @@
         });
     }
 
+    function getItemData(){
+        
+    }
     function kkd_init(){
+        getItemData();
         kkd_summernote_init();
-
+        $(".icon-upfile").popover({
+            title:'上传说明',
+            trigger:'hover',
+            placement:'left',
+            html:true,
+            content:'附件大小不能超过 2 MB <br> 图片 : gif , jpg , png <br> 文档 : word , ppt , excel <br> 压缩包 : rar , zip<br>媒体 : mp3 , mp4'
+        });
         $('#assessment_set').html('');
         var stemp_role = '<option value="[assessment_set_id]">[assessment_name]</option>';
         var temp_data = [];
@@ -170,6 +194,8 @@
 
         split_zip();
     }
+
+
     function split_zip()
     {
         var files = <?php echo $ass_item_files?>;
@@ -241,6 +267,16 @@
                             }
                         });
                     });
+                },
+                onPaste: function (ne) {
+                    var bufferText = ((ne.originalEvent || ne).clipboardData || window.clipboardData).getData('Text/plain');
+                    //    ne.preventDefault();
+                    ne.preventDefault ? ne.preventDefault() : (ne.returnValue = false);
+                    // Firefox fix
+                    setTimeout(function () {
+                        document.execCommand("insertText", false, bufferText);
+                    }, 10);
+                    /*  */
                 }
             },
             toolbar : toolbar
@@ -248,4 +284,5 @@
         $.extend(summernoteConfigDefault, summernoteConfig);
         summernote.summernote(summernoteConfigDefault);
     }
+
 </script>

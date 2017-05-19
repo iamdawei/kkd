@@ -1,15 +1,4 @@
 <style type="text/css">
-    .kkd-dialog-wrap .kkd-dialog-container{width:600px;}
-    .kkd-table.dialog>thead>tr>td, .kkd-table.dialog>thead>tr>th{color:#2258A0;font-size:14px;}
-    .kkd-table.dialog>thead>tr>th{border:none !important;}
-    .dialog-t-title{text-align: left;}
-    .dialog-t-time{text-align: right;}
-    .kkd-table font{color:red;font-size:12px;}
-    .item-content-box{text-align: left;text-align: justify;}
-    .kkd-table>tfoot>tr>td {
-        background-color: #F3FBFD;
-    }
-    .none{padding: 10px!important;color: #666666;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -28,7 +17,9 @@
                 <div class="select-box">
                     <input type="text" placeholder="要查找的项目名" id="keywords" class="form-control search" />
                 </div>
-                <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                <div class="select-box right">
+                    <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                </div>
             </div>
         </div>
         <div class="main-content">
@@ -88,8 +79,8 @@
         </tr>
         </tfoot>
     </table>
-    <div style="text-align: center;margin: 50px 0;">
-        <button class="btn btn-success lg" data-lock-txt="执行中..." data-unlock-txt="通 过" type="button" onclick="kkd_pend([assessment_item_id])">通 过</button>
+    <div style="text-align: center;margin: 50px 0;font-size: 0px;">
+        <button class="btn btn-success lg" data-lock-txt="执行中..." style="margin-right:20px;" data-unlock-txt="通 过" type="button" onclick="kkd_pend([assessment_item_id])">通 过</button>
         <button class="btn btn-warning lg" data-lock-txt="执行中..." data-unlock-txt="驳 回" type="button" onclick="kkd_rebut([assessment_item_id],0)">驳 回</button>
     </div>
 </script>
@@ -108,13 +99,12 @@
 </script>
 <script type="text/template" id="template-assessment-pend">
     <div class="form-content">
-        <br />
         <div class="input-group">
-            <textarea rows="3" cols="20" id="status_descript" name="status_descript" class="form-control textarea">请填写您的驳回理由...</textarea>
+            <textarea rows="3" cols="20" id="status_descript" name="status_descript" class="form-control textarea" placeholder="请填写您的驳回理由..."></textarea>
         </div>
         <br /><br />
         <div class="clearfix" style="text-align: center;">
-            <button class="btn btn-success lg" data-lock-txt="执行中..." data-unlock-txt="驳 回" type="button" onclick="kkd_rebut([assessment_item_id],1)">驳 回</button>
+            <button class="btn btn-warning lg" data-lock-txt="执行中..." data-unlock-txt="驳 回" type="button" onclick="kkd_rebut([assessment_item_id],1)">驳 回</button>
         </div>
     </div>
 </script>
@@ -125,36 +115,18 @@ var kkd_form_save_url = '/assessment/check';
 function check_item_info(i)
 {
     kkd_form_save_url = '/assessment/check/'+i;
-    ajax_get_teacher();
+    get_assessment_item_info(kkd_form_save_url,"#template-assessment-item-info");
 }
 
-function ajax_get_teacher()
-{
-    $.ajax({
-        url: kkd_form_save_url,
-        dataType:'json',
-        type:'get',
-        success:function(result){
-            if(result.code == 200) {
-                var maincontent = $("#template-assessment-item-info").html();
-                var o = result.data;
-                maincontent = maincontent.replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace('[item_title]', o.item_title)
-                    .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name).replace('[item_zip]',split_zip(o.files))
-                    .replace('[commit_datetime]', o.commit_datetime).replace('[item_content]', o.item_content).replace(/\[assessment_item_id\]/g, o.assessment_item_id);
-                kkd_dialog_ini('考核项目详情',maincontent);
-            }
-        }
-    });
-}
 function split_zip(files)
 {
     var temp_data = [];
-    var temp_str = "<li class=\"[class]\"><a href=\"javascript:void(0);\">[name]</a></li>";
+    var temp_str = "<li class=\"[class]\"><a href=\"/home/download?name=[name]&file=[file_real_name]\">[name]</a></li>";
     $(files).each(
         function(i,o){
             var temp_fix = o.file_name.split('.');
             var file_fix = temp_fix[temp_fix.length-1];
-            temp_data.push(temp_str.replace('[name]',o.file_name).replace('[class]',kkd_file_arr[file_fix]));
+            temp_data.push(temp_str.replace(/\[name\]/g,o.file_name).replace('[file_real_name]',o.file_real_name).replace('[class]',kkd_file_arr[file_fix]));
         }
     );
     if(temp_data.length == 0) return "<li class='none'>无附件</li>";
@@ -183,12 +155,12 @@ function kkd_rebut(aid,type)
     {
         kkd_dialog_close();
         var maincontent = $("#template-assessment-pend").html();
-        kkd_dialog_ini('驳回信息',maincontent.replace('[assessment_item_id]',aid));
+        kkd_dialog_ini('驳回信息',maincontent.replace('[assessment_item_id]',aid),'table-style');
     }
     else
     {
         var sd = $("#status_descript").val();
-        if(sd == '请填写您的驳回理由...'){
+        if(sd.length == 0){
             $("#status_descript").focus();
             alert('请填写您的驳回理由...');
             return false;

@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * 个人消息中心控制器
  */
 
-class Message extends Base_Controller
+class Message extends API_Conotroller
 {
     protected $user_id = '';
 
@@ -89,7 +89,6 @@ class Message extends Base_Controller
     }
 
     //更改消息状态；
-    //todo
     //1 进入获取列表
     //2 全部标记已读；无按钮？
     //以下put 方法 保留更改所有消息状态；
@@ -100,7 +99,6 @@ class Message extends Base_Controller
         $this->ajax_return(200, MESSAGE_SUCCESS);
     }
 
-    //todo 以下为添加方法；
     // 批量删除已读
     protected function message_batch_delete()
     {

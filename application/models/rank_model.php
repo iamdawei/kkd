@@ -43,7 +43,7 @@ class Rank_model extends CI_Model
         //过滤接受的参数
         $assessment_type = (isset($where['assessment_type']) && !empty($where['assessment_type'])) ? $where['assessment_type'] : 0;
         $teacher_subject = (isset($where['teacher_subject']) && !empty($where['teacher_subject'])) ? $where['teacher_subject'] : null;
-        $grade_number = intval(($where['grade_number']));
+        $grade_number = intval(isset($where['grade_number'])?$where['grade_number']:0);
         $keywords = (isset($where['keywords']) && !empty($where['keywords']))? $where['keywords'] :'';
 
         $teacher_join = 'left';
@@ -127,5 +127,31 @@ where tr.role_id = 100000 $teacher_subject $keywords";
             return $row->count_number;
         }
         else return 0;
+    }
+
+    //此函数作用于保存excel，其他地方严禁调用
+    public function rank_list_all($where = array())
+    {
+        $school_id = $where['school_id'];
+        $file_number = $where['file_number'];
+
+        $query_str="select tea.teacher_id,tea.teacher_name,tea.teacher_subject,IFNULL(temp_grade.grade_number,0) grade_number,IFNULL(sun_t.sum_type0,0) sum_type0,IFNULL(sun_t.sum_type1,0) sum_type1,IFNULL(sun_t.sum_type2,0) sum_type2
+from kkd_teacher as tea
+left JOIN (select min(tc.grade_number) as grade_number,MAX(teacher_id) as teacher_id from kkd_teacher_class tc  GROUP BY teacher_id) as temp_grade on tea.teacher_id = temp_grade.teacher_id
+left JOIN (
+  select
+  SUM(IF(assessment_type = 0,item_number,0))AS sum_type0,
+  SUM(IF(assessment_type = 1,item_number,0))AS sum_type1,
+  SUM(IF(assessment_type = 2,item_number,0))AS sum_type2,
+  min(ai.teacher_id) as teacher_id
+  from kkd_assessment_item as ai
+  where ai.file_number = '$file_number' and ai.school_id = $school_id and ai.item_status = 0
+  group by ai.teacher_id
+) as sun_t on tea.teacher_id = sun_t.teacher_id
+JOIN kkd_teacher_role as tr on tea.teacher_id = tr.teacher_id
+where tr.role_id = 100000 order by sum_type1 DESC";
+
+        $query = $this->db->query($query_str);
+        return $query->result_array();
     }
 }

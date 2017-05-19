@@ -20,14 +20,16 @@ class Auth_role_model extends CI_Model
         $this->db->join( 'kkd_auth_group as ag','ag.group_id = au.group_id');
         $this->db->where('teacher_id',$u_id);
         $this->db->order_by('group_sort','ASC');
-        $res = $this->db->get()->result();
+        $res = $this->db->get()->result_array();
         return $res;
     }
 
-    public function get_role_list()
+    public function get_role_list($role_type = null,$school_id)
     {
         $this->db->select( 'role_id,role_name' );
         $this->db->from('kkd_role');
+        if(! is_null($role_type)){$this->db->where('role_type !=',$role_type);}
+        $this->db->where('school_id',$school_id);
         $res = $this->db->get()->result();
         return $res;
     }
@@ -57,5 +59,15 @@ class Auth_role_model extends CI_Model
         $data['role_id'] = $role_id;
         $va = $this->db->insert('kkd_teacher_role', $data);
         return $va;
+    }
+    public function add_auth_role($role_array)
+    {
+        $this->db->insert_batch('kkd_auth_role', $role_array);
+    }
+    public function delete_auth_role($role_id)
+    {
+        $this->db->where('role_id', $role_id);
+        $this->db->delete('kkd_auth_role');
+        return $this->db->affected_rows();
     }
 }

@@ -1,5 +1,5 @@
 <style type="text/css">
-
+.item_status_0{color:#58B96E;font-weight: normal;}
 </style>
 <div class="main">
     <div class="main-warp">
@@ -25,7 +25,7 @@
         </div>
         <div class="media-body">
             <h5 class="media-heading">[auditor_name]<font class="item_status_[item_status]"> [item_status_txt] </font>了你发布的【[assessment_type]】【[assessment_name]】
-                <a class="color-1" href="/Home/item?edit=[assessment_item_id]" target="_blank">《[item_title]》</a></h5>
+                <a class="color-1" href="javascript:get_assessment_item_info('/assessment/source/[assessment_item_id]');">[item_title]</a></h5>
             <p>[status_descript]</p>
         </div>
         <div class="media-right">
@@ -103,4 +103,5 @@
             }
         });
     }
+
 </script>

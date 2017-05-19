@@ -7,8 +7,12 @@
 	z-index:9999;
 }
 #gritter-notice-wrapper.top-left {
-    left: 20px;
-    right: auto;
+	left: 20px;
+	right: auto;
+}
+#gritter-notice-wrapper.top-center {
+	left: 50%;
+	top: 100px;
 }
 #gritter-notice-wrapper.bottom-right {
     top: auto;

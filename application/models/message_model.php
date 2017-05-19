@@ -87,7 +87,6 @@ class Message_model extends CI_Model
         return $total;
     }
 
-    //todo 以下属于消息产生时涉及到的方法修整；
     //批量删除消息记录，修整消息存储时用；
     public function delete_message_batch($teacher_id)
     {

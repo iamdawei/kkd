@@ -6,10 +6,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *  管理员对考核标准CRUD操作
  *  教师对考核的CRUD操作
  *
- *   TODO 文件上传的XSS验证 2017-04-27，此功能留在以后优化，特注明
+ *   TODO-KKD 文件上传的XSS验证 2017-04-27，此功能留在以后优化，特注明
  */
 
-class Assessment extends Base_Controller
+class Assessment extends API_Conotroller
 {
 
     protected $teacher_id = '';
@@ -31,7 +31,7 @@ class Assessment extends Base_Controller
                     $this->assessment_item($assessment_set_id);
                     break;
                 }
-                    else{
+                else{
                     $this->assessment_list();
                     break;
                 }
@@ -72,7 +72,7 @@ class Assessment extends Base_Controller
 
         $assessment_set_id = $this->uri->segment(3,0);
         //查看当前发布状态；
-        $is_open = $this->assessment_model->get_info($assessment_set_id);
+        $is_open = $this->assessment_model->get_info($assessment_set_id,'is_open,assessment_role');
 
         if($is_open['is_open'] == 1){
             $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
@@ -80,6 +80,19 @@ class Assessment extends Base_Controller
         //发布
         $open['is_open'] = 1;
         $res = $this->assessment_model->put($assessment_set_id,$open);
+        //插入角色审核权限于assessment_role;
+        $role_array = array();
+        $role_str = $is_open['assessment_role'];
+        $role = explode(',',$role_str);
+        foreach ($role as $value){
+            $value = explode(':',$value);
+            $value = array(
+                'assessment_set_id'=>$assessment_set_id,
+                'role_id'=>$value[0]
+            );
+            array_push($role_array,$value);
+        }
+        $this->assessment_model->add_role($role_array);
         if (! $res)
         {
             $this->ajax_return(400,MESSAGE_ERROR_DATA_WRITE);
@@ -98,9 +111,6 @@ class Assessment extends Base_Controller
 
     protected function assessment_list()
     {
-        //整合传入必要分页参数；
-        //todo
-        //关于file_number的输入问题；model默认当前版本；
         $where['file_number'] = $this->input->get('file_number');
 
         $is_open = $this->input->get('is_open');
@@ -147,6 +157,8 @@ class Assessment extends Base_Controller
         $this->load->model('school_model');
         $file_number = $this->school_model->get($this->school_id,'file_number');
         $data = array(
+            'assessment_descript' =>  $this->input->post('assessment_descript'),
+            'max_number' =>  $this->input->post('max_number'),
             'assessment_type' => $this->input->post('assessment_type'),
             'assessment_name' => $this->input->post('assessment_name'),
             'have_title'=> $this->input->post('have_title'),
@@ -154,7 +166,7 @@ class Assessment extends Base_Controller
             'have_zip'=> $this->input->post('have_zip'),
             'assessment_number'=> $this->input->post('assessment_number'),
             'school_id'=> $this->school_id,
-            'file_number' => $file_number,
+            'file_number' => $file_number['file_number'],
             'is_open' => 0,
             'assessment_role'=> join(',',$this->input->post('assessment_role')),
         );
@@ -174,7 +186,7 @@ class Assessment extends Base_Controller
         //查看当前发布状态；
         $is_open = $this->assessment_model->get_info($assessment_set_id);
         if($is_open['is_open'] == 1){
-          $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
+            $this->ajax_return(400,MESSAGE_ERROR_USER_ROLE);
         }
 
         $res = $this->assessment_model->delete($assessment_set_id);
@@ -197,6 +209,8 @@ class Assessment extends Base_Controller
         }
 
         $data = array(
+            'assessment_descript' =>  $this->input->input_stream('assessment_descript'),
+            'max_number' =>  $this->input->input_stream('max_number'),
             'assessment_type' => $this->input->input_stream('assessment_type'),
             'assessment_name' => $this->input->input_stream('assessment_name'),
             'have_title'=> $this->input->input_stream('have_title'),
@@ -250,6 +264,19 @@ class Assessment extends Base_Controller
         }
     }
 
+    public function assessment_item_check()
+    {
+        if(REQUEST_METHOD != REQUEST_GET ) $this->ajax_return(400,MESSAGE_ERROR_REQUEST_TYPE);
+        $teacher_id = $this->HTTP_TOKEN_SIGN['uid'];
+        $assessment_set_id = $this->uri->segment(3,0);
+        $data = $this->assessment_model->get_info($assessment_set_id,'assessment_descript,max_number');
+        $this->load->model('assessment_item_model');
+        if(empty($data)){
+            $this->ajax_return(400,MESSAGE_ERROR_NON_DATA);
+        }
+        $data['count'] = $this->assessment_item_model->get_max_number($assessment_set_id ,$teacher_id);
+        $this->ajax_return(200,MESSAGE_SUCCESS,$data);
+    }
 //    上传附件接口需要即调取；
     public function item_upfile()
     {
@@ -379,12 +406,13 @@ class Assessment extends Base_Controller
     protected function assessment_item_add()
     {
         $where['assessment_set_id'] = $this->input->post('assessment_set_id');
-        $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role');
+        $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role,max_number');
         if(!$assessment_set) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
-
         $this->load->model('teacher_model');
         $tea_va = $this->teacher_model->get_teacher(array('teacher_id'=>$this->teacher_id),'teacher_name');
         if(!$tea_va) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
+        $count = $this->assessment_item_model->get_max_number($where['assessment_set_id'] ,$this->teacher_id);
+        if($count >= $assessment_set['max_number']) $this->ajax_return(400,MESSAGE_ERROR_ENOUGH);
         $save_content_imgs = $this->input->post('imgs');
         $save_content = $this->input->post('item_content');
 
@@ -397,7 +425,7 @@ class Assessment extends Base_Controller
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->post('item_title'),
             'item_content' => $this->input->post('item_content',false),
-            'commit_datetime' => date('Y-m-d H:m:s'),
+            'commit_datetime' => date('Y-m-d H:i:s'),
             'item_status' => 1,
             'file_number' => $assessment_set['file_number'],
             'school_id' => $this->school_id,
@@ -462,13 +490,14 @@ class Assessment extends Base_Controller
         if ($status['item_status'] == 0) {
             $this->ajax_return(400, MESSAGE_ERROR_USER_ROLE);
         }
-
-        //TODO 批量删除文件
-        //1.先查询kkd_item_file表中匹配的所有属于assessment_item_id的file_real_name
-
-        //2、循环删除file_real_name这个路径的文件
-
-        //这个delete方法已经执行了数据库表的kkd_item_file同步删除操作
+        //循环删除file_real_name这个路径的文件
+        $files = $this->assessment_item_model->get_item_file($assessment_item_id);
+        if(! empty($files)){
+            foreach($files as $key => $value){
+                $temp_path = $files[$key]->file_real_name;
+                @unlink('.'.$temp_path);
+            }
+        }
 
         $res = $this->assessment_item_model->delete($assessment_item_id);
         if ($res < 0) {
@@ -481,9 +510,10 @@ class Assessment extends Base_Controller
     protected function assessment_item_update($assessment_item_id)
     {
         $where['assessment_set_id'] = $this->input->input_stream('assessment_set_id');
-        $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role');
+        $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role,max_number');
         if(!$assessment_set) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
-
+        $count = $this->assessment_item_model->get_max_number($where['assessment_set_id'] ,$this->teacher_id);
+        if($count >= $assessment_set['max_number']) $this->ajax_return(400,MESSAGE_ERROR_ENOUGH);
         $this->load->model('teacher_model');
         $tea_va = $this->teacher_model->get_teacher(array('teacher_id'=>$this->teacher_id),'teacher_name');
         if(!$tea_va) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
@@ -497,7 +527,9 @@ class Assessment extends Base_Controller
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->input_stream('item_title'),
             'item_content' => $this->input->input_stream('item_content',false),
-            'commit_datetime' => date('Y-m-d H:m:s')
+            'commit_datetime' => date('Y-m-d H:i:s'),
+            'item_status' => 1,
+            'assessment_role' => $assessment_set['assessment_role'],
         );
         $res = $this->assessment_item_model->put($assessment_item_id, $item_array);
         if ($res < 0) {
@@ -564,41 +596,26 @@ class Assessment extends Base_Controller
     //待审列表
     protected function assessment_item_list()
     {
-
-        //整合传入必要分页参数；
         $assessment_type = $this->input->get('assessment_type');
         if (isset($assessment_type) && $assessment_type !== 'all') {
             $where['assessment_type'] = $assessment_type;
         }
-
+        $where['item_status'] = $this->input->get('status');
         $where['teacher_id'] = $this->teacher_id;
-        $where['page'] = intval($this->input->get('page'));
+        $page = intval($this->input->get('page'));
         $where['school_id'] = $this->school_id;
         $where['keywords'] = $this->input->get('keywords');
 
-        //确定每页显示，初始化总条数；
         $limit = 10;
         $total = 0;
-
-        //默认起始页；
-        if (empty($where['page'])) {
-            $where['page'] = 1;
-        }
-
-        // 返回数组；
+        if (!$page) $page = 1;
         $assessment_itemlist = array();
-        $assessment_itemlist['data'] = $this->assessment_item_model->get($where, $limit, $total);
-
-        // 返回总条数
+        $cols = 'assessment_item_id,assessment_type,ai.assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime,auditor_name';
+        $assessment_itemlist['data'] = $this->assessment_item_model->get($where, $limit, $total,$page,$cols);
         $assessment_itemlist['total'] = $total;
-
-        // 返回当前页
-        $assessment_itemlist['current_page'] = $where['page'];
-
-        // 返回总页数
+        $assessment_itemlist['current_page'] = $page;
         $assessment_itemlist['total_page'] = ceil($total / $limit);
-
-        $this->ajax_return(200, MESSAGE_SUCCESS.$this->assessment_item_model->get_last_query(), $assessment_itemlist);
+        $this->ajax_return(200, MESSAGE_SUCCESS, $assessment_itemlist);
     }
 
     protected function assessment_item_pass($assessment_item_id)
@@ -607,14 +624,14 @@ class Assessment extends Base_Controller
         $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
-        $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
+        $item_status['auditor_datetime'] = date('Y-m-d H:i:s');
 
         $res = $this->assessment_item_model->put_status($item_array, $item_status);
 
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
-        //todo 这里产生消息；
+
         $message = $this->assessment_item_model->get_item($assessment_item_id,'teacher_id,assessment_item_id,assessment_type,
                                                 assessment_name,item_title');
         $this->load->model('message_model');
@@ -635,10 +652,10 @@ class Assessment extends Base_Controller
         $item_status['item_status'] = 0;
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
-        $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
+        $item_status['auditor_datetime'] = date('Y-m-d H:i:s');
 
         $this->assessment_item_model->put_status($item_array,$item_status);
-        //todo 消息中心批量产生消息；
+
         $message_array = $this->assessment_item_model->get_item($item_array,'teacher_id,assessment_item_id,assessment_type,
                                                 assessment_name,item_title');
 
@@ -658,18 +675,27 @@ class Assessment extends Base_Controller
     protected function assessment_item_rebut($assessment_item_id)
     {
         $item_array['assessment_item_id'] = $assessment_item_id;
+
+        //查询状态如果为0或2，则返回400，提示本条已审核通过或驳回，返回操作的管理员姓名或姓名和驳回原因；
+        $now_status = $this->assessment_item_model->get_item($assessment_item_id,'item_status,auditor_name,status_descript');
+        if($now_status['item_status'] == 0 )
+        {
+            $this->ajax_return(400,MESSAGE_ERROR_HAVE_DONE_PASS,$now_status['auditor_name']);
+        } else if ($now_status['item_status'] == 2 ) {
+            $this->ajax_return(400,MESSAGE_ERROR_HAVE_DONE_REBUT,$now_status);
+        }
         $item_status['item_status'] = 2;
         $item_status['status_descript'] = $this->input->input_stream('status_descript');
         $item_status['auditor_id'] = $this->teacher_id;
         $item_status['auditor_name'] = $this->teacher_name;
-        $item_status['auditor_datetime'] = date('Y-m-d H:m:s');
+        $item_status['auditor_datetime'] = date('Y-m-d H:i:s');
 
         $res = $this->assessment_item_model->put_status($item_array, $item_status);
 
         if ($res < 0) {
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
-        //todo 消息中心同步更新；
+
         $message = $this->assessment_item_model->get_item($assessment_item_id,'teacher_id,assessment_item_id,assessment_type,
                                                 assessment_name,item_title');
         $this->load->model('message_model');
@@ -677,9 +703,48 @@ class Assessment extends Base_Controller
         $message['auditor_name'] = $this->teacher_name;
         $message['auditor_datetime' ] = $item_status['auditor_datetime'];
         $message['message_status'] = 1;
+        $message['status_descript'] = $item_status['status_descript'];
         $this->message_model->add($message);
 
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_status);
     }
 
+    public function source()
+    {
+        $this->load->model('assessment_item_model');
+        switch (REQUEST_METHOD) {
+            case REQUEST_GET :
+                $assessment_item_id = intval($this->uri->segment(3, 0));
+                if ($assessment_item_id) {
+                    //本条申请的具体内容；
+                    $this->assessment_item_info($assessment_item_id);
+                    break;
+                } else {
+                    $this->assessment_item_source();
+                    break;
+                }
+        }
+    }
+
+    protected function assessment_item_source()
+    {
+        $assessment_type = $this->input->get('assessment_type');
+        $where['keywords'] = $this->input->get('keywords');
+        $page = intval($this->input->get('page'));
+        $where['school_id'] = $this->school_id;
+        if (isset($assessment_type) && $assessment_type !== 'all') {
+            $where['assessment_type'] = $assessment_type;
+        }
+
+        $limit = 10;
+        $total = 0;
+        if (!$page) $page = 1;
+        $assessment_itemlist = array();
+        $cols = 'assessment_item_id,assessment_type,assessment_set_id,assessment_name,item_title,item_number,teacher_name,commit_datetime,auditor_name';
+        $assessment_itemlist['data'] = $this->assessment_item_model->get_source_list($where, $limit, $total,$page,$cols);
+        $assessment_itemlist['total'] = $total;
+        $assessment_itemlist['current_page'] = $page;
+        $assessment_itemlist['total_page'] = ceil($total / $limit);
+        $this->ajax_return(200, MESSAGE_SUCCESS, $assessment_itemlist);
+    }
 }

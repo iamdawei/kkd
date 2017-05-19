@@ -6,8 +6,8 @@
             <div class="search-warp">
                 <div class="select-box">
                     <select class="cs-select kkd-skin" id="s_teacher_grade">
-                        <option value="" disabled selected>年&nbsp;&nbsp;&nbsp;&nbsp;级</option>
-                        <option value="">年&nbsp;&nbsp;&nbsp;&nbsp;级</option>
+                        <option value="" disabled selected>所有年级</option>
+                        <option value="">所有年级</option>
                         <option value="1">一年级</option>
                         <option value="2">二年级</option>
                         <option value="3">三年级</option>
@@ -17,14 +17,19 @@
                     </select>
                 </div>
                 <div class="select-box">
-                    <select class="cs-select kkd-skin" id="s_teacher_subject">
-                        <option value="" disabled selected>学 科</option>
+                    <select class="cs-select kkd-skin" id="s_teacher_subject" name="teacher_role">
+                    </select>
+                </div>
+                <div class="select-box">
+                    <select class="cs-select kkd-skin" id="sel_rol" name="sel_rol">
                     </select>
                 </div>
                 <div class="select-box">
                     <input type="text" placeholder="请输入您要查找的内容" id="s_keywords" class="form-control search" />
                 </div>
-                <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                <div class="select-box right">
+                    <button class="btn btn-search" data-lock="false" onclick="search()" type="button">搜索</button>
+                </div>
             </div>
         </div>
         <div class="main-content">
@@ -79,7 +84,7 @@
             </div>
         </div>
         <div class="input-group clearfix">
-            <label class="control-label">出生年月 :</label>
+            <label class="control-label" for="teacher_born_date1">出生年月 :</label>
             <select class="sel_born_year" name="teacher_born_date1" id="teacher_born_date1"></select>
             <label class="select-label">年</label>
             <select class="sel_born_month" name="teacher_born_date2" id="teacher_born_date2"></select>
@@ -95,7 +100,7 @@
             </select>
         </div>
         <div class="input-group">
-            <label class="control-label">入职时间 :</label>
+            <label class="control-label" for="teacher_indution_date1">入职时间 :</label>
             <select class="sel_in_year" name="teacher_indution_date1" id="teacher_indution_date1"></select>
             <label class="select-label">年</label>
             <select class="sel_in_month" name="teacher_indution_date2" id="teacher_indution_date2"></select>
@@ -104,7 +109,7 @@
             <label class="select-label">日</label>
         </div>
         <div class="input-group">
-            <label class="control-label">学科 :</label>
+            <label class="control-label" for="teacher_subject">学科 :</label>
             <select name="teacher_subject" id="teacher_subject">
             </select>
         </div>
@@ -153,20 +158,22 @@
     }
     function reset_password(uid,obj)
     {
-        KKD_AJAX_OBJ = $(obj);
-        $.ajax({
-            url: '/teachers/password/'+uid,
-            dataType:'json',
-            type:'delete',
-            beforeSend:kkd_ajax_beforeSend,
-            success:function(data){
-                if(data.code == 200) {
-                    alert('密码已重置');
-                }
-                else alert(data.info);
-            },
-            error:kkd_ajax_error,
-            complete:kkd_ajax_complete
+        confirm('是否重置该账户密码？',function(){
+            KKD_AJAX_OBJ = $(obj);
+            $.ajax({
+                url: '/teachers/password/'+uid,
+                dataType:'json',
+                type:'delete',
+                beforeSend:kkd_ajax_beforeSend,
+                success:function(data){
+                    if(data.code == 200) {
+                        alert('密码已重置');
+                    }
+                    else alert(data.info);
+                },
+                error:kkd_ajax_error,
+                complete:kkd_ajax_complete
+            });
         });
     }
     function ajax_get_teacher()
@@ -309,6 +316,7 @@
                 temp_data.push(ls);
                 t_i++;
             }
+            temp_data.push("<br />");
         }
         $('#kkd-checkbox-box').html(temp_data.join(''));
 
@@ -349,14 +357,17 @@
     {
         var teacher_grade = $("#s_teacher_grade").val();
         var teacher_subject = $("#s_teacher_subject").val();
+        var sel_role=$('#sel_rol').val();
         var keywords = $.trim($("#s_keywords").val());
 
         teacher_grade = (teacher_grade == null)?'':teacher_grade;
         teacher_subject = (teacher_subject == null)?'':teacher_subject;
+        sel_role = (sel_role == null)?'':sel_role;
         keywords = (keywords == null)?'':keywords;
         var s_data = [];
         s_data.push('teacher_class='+teacher_grade);
         s_data.push('teacher_subject='+teacher_subject);
+        s_data.push('teacher_role='+sel_role);
         s_data.push('keywords='+keywords);
 
         if(pars === 1) return s_data.join('&');
@@ -365,16 +376,18 @@
 
     function kkd_delete(uid,obj)
     {
-        $.ajax({
-            url: '/teachers/'+uid,
-            dataType:'json',
-            type:'delete',
-            success:function(data){
-                if(data.code == 200) {
-                    $(obj).parent().parent().addClass('disabled');
+        confirm('是否删除该账号？',function(){
+            $.ajax({
+                url: '/teachers/'+uid,
+                dataType:'json',
+                type:'delete',
+                success:function(data){
+                    if(data.code == 200) {
+                        $(obj).parent().parent().addClass('disabled');
+                    }
+                    else alert(data.info);
                 }
-                else alert(data.info);
-            }
+            });
         });
     }
 
@@ -385,6 +398,7 @@
     function kkd_init()
     {
         kkd_teacher_subject_inti('#s_teacher_subject');
+        kkd_sel_rol();
         kkd_select_int();
         kkd_data_init();
     }
@@ -412,7 +426,7 @@
             }else{
                 $(data.data.data).each(function(i,o){
                     var ls = temp.replace(/\[teacher_id\]/g, o.teacher_id).replace('[teacher_name]', o.teacher_name).replace('[teacher_account]', o.teacher_account)
-                        .replace('[teacher_photo]', o.teacher_photo).replace('[teacher_indution_date]', o.teacher_indution_date).replace('[teacher_subject]', o.teacher_subject)
+                        .replace('[teacher_photo]', o.teacher_photo).replace('[teacher_indution_date]', o.teacher_indution_date).replace('[teacher_subject]', (o.teacher_subject)?o.teacher_subject:'未设置')
                         .replace('[teacher_class]', kkd_teacher_join_data(o.teacher_class,'class')).replace('[teacher_role]', kkd_teacher_join_data(o.teacher_role,'role'));
                     temp_data.push(ls);
                 });
@@ -427,7 +441,7 @@
 
     function kkd_teacher_join_data(source,type)
     {
-        if(source == null || source == '') return '';
+        if(source == null || source == '') return '未设置';
         var temp_data = [];
         var ibs = source.split(',');
         for(var i =0;i<ibs.length;i++)
@@ -456,12 +470,20 @@
         var ss =kkd_school_config['school_subject'];
         var vas = ss.split(',');
         var temp_data = [];
-        temp_data.push('<option value="">学科</option>');
+        temp_data.push('<option value="">所有学科</option>');
         var temp_model = '<option value="[value]">[value]</option>';
         for(var i =0 ;i<vas.length;i++)
         {
             temp_data.push(temp_model.replace(/\[value\]/g,vas[i]));
         }
         $(obj).html(temp_data.join(''));
+    }
+
+    function kkd_sel_rol() {
+        var oOpt="<option value=''>所有角色</option>";
+        for(var i=0;i<kkd_roles.length;i++){
+            oOpt+=`<option value="${kkd_roles[i].role_id}">${kkd_roles[i].role_name}</option>`;
+        }
+        $('#sel_rol').html(oOpt);
     }
 </script>                           
