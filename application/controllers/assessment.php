@@ -269,7 +269,7 @@ class Assessment extends API_Conotroller
         if(REQUEST_METHOD != REQUEST_GET ) $this->ajax_return(400,MESSAGE_ERROR_REQUEST_TYPE);
         $teacher_id = $this->HTTP_TOKEN_SIGN['uid'];
         $assessment_set_id = $this->uri->segment(3,0);
-        $data = $this->assessment_model->get_info($assessment_set_id,'assessment_descript,max_number');
+        $data = $this->assessment_model->get_info($assessment_set_id,'have_title,have_content,have_zip,assessment_descript,max_number');
         $this->load->model('assessment_item_model');
         if(empty($data)){
             $this->ajax_return(400,MESSAGE_ERROR_NON_DATA);
@@ -414,8 +414,8 @@ class Assessment extends API_Conotroller
         $count = $this->assessment_item_model->get_max_number($where['assessment_set_id'] ,$this->teacher_id);
         if($count >= $assessment_set['max_number']) $this->ajax_return(400,MESSAGE_ERROR_ENOUGH);
         $save_content_imgs = $this->input->post('imgs');
-        $save_content = $this->input->post('item_content');
-
+        $save_content = $this->input->post('item_content',false);
+        if(!isset($save_content)) $save_content = '';
         $item_array = array(
             'teacher_id' => $this->teacher_id,
             'teacher_name' => $tea_va['teacher_name'],
@@ -424,7 +424,7 @@ class Assessment extends API_Conotroller
             'assessment_name' => $assessment_set['assessment_name'],
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->post('item_title'),
-            'item_content' => $this->input->post('item_content',false),
+            'item_content' => $save_content,
             'commit_datetime' => date('Y-m-d H:i:s'),
             'item_status' => 1,
             'file_number' => $assessment_set['file_number'],
@@ -436,12 +436,14 @@ class Assessment extends API_Conotroller
             $this->ajax_return(400, MESSAGE_ERROR_DATA_WRITE);
         }
 
-        $this->move_files($item_id,$this->input->post('files'),$this->input->post('imgs'));
+        $this->move_files($item_id,$this->input->post('files'),$save_content_imgs);
         $this->ajax_return(200, MESSAGE_SUCCESS, $item_id);
     }
 
     protected function move_files($item_id,$item_zip,$content_imgs)
     {
+        //TODO-KKD （已完成，更新后删除） 将文本图片也记录到数据中，将kkd_item_file两个字段长度变更为40
+        $file_data = array();
         //移动内容图片
         //移动附件
         if(! empty($content_imgs)){
@@ -453,29 +455,31 @@ class Assessment extends API_Conotroller
                     $save_path = str_replace('/temp/','/',$temp_path);
                     rename('.'.$temp_path,'.'.$save_path);
                     @unlink('.'.$temp_path);
+                    $file_data[] = array(
+                        'file_name' => $save_path,
+                        'file_real_name' => $save_path,
+                        'item_id' => $item_id
+                    );
                 }
             }
         }
-
-        if(empty($item_zip)) return true;
-
-        $file_data = array();
-
         //移动附件
-        $item_zip = explode(',,,',$item_zip);
-        foreach ($item_zip as $value){
-            $file_name = explode('===',$value);
-            $temp_path = $file_name[1];
-            if(stripos($temp_path,'/temp/') !== false){
-                //如果目标文件存在/temp/则表示是临时文件
-                $save_path = str_replace('/temp/','/',$temp_path);
-                rename('.'.$temp_path,'.'.$save_path);
-                @unlink('.'.$temp_path);
-                $file_data[] = array(
-                    'file_name' => $file_name[0],
-                    'file_real_name' => $save_path,
-                    'item_id' => $item_id
-                );
+        if(! empty($item_zip)){
+            $item_zip = explode(',,,',$item_zip);
+            foreach ($item_zip as $value){
+                $file_name = explode('===',$value);
+                $temp_path = $file_name[1];
+                if(stripos($temp_path,'/temp/') !== false){
+                    //如果目标文件存在/temp/则表示是临时文件
+                    $save_path = str_replace('/temp/','/',$temp_path);
+                    rename('.'.$temp_path,'.'.$save_path);
+                    @unlink('.'.$temp_path);
+                    $file_data[] = array(
+                        'file_name' => $file_name[0],
+                        'file_real_name' => $save_path,
+                        'item_id' => $item_id
+                    );
+                }
             }
         }
 
@@ -513,11 +517,13 @@ class Assessment extends API_Conotroller
         $assessment_set = $this->assessment_model->get_info($where['assessment_set_id'], 'assessment_number,assessment_type,assessment_name,file_number,assessment_role,max_number');
         if(!$assessment_set) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
         $count = $this->assessment_item_model->get_max_number($where['assessment_set_id'] ,$this->teacher_id);
-        if($count >= $assessment_set['max_number']) $this->ajax_return(400,MESSAGE_ERROR_ENOUGH);
+        //此处是更新，和新增的逻辑不同，当count > max_number 时，才不允许提交
+        if($count > $assessment_set['max_number']) $this->ajax_return(400,MESSAGE_ERROR_ENOUGH);
         $this->load->model('teacher_model');
         $tea_va = $this->teacher_model->get_teacher(array('teacher_id'=>$this->teacher_id),'teacher_name');
         if(!$tea_va) $this->ajax_return(400, MESSAGE_ERROR_NON_DATA);
-
+        $save_content = $this->input->input_stream('item_content',false);
+        if(!isset($save_content)) $save_content = '';
         $item_array = array(
             'teacher_id' => $this->teacher_id,
             'teacher_name' => $tea_va['teacher_name'],
@@ -526,7 +532,7 @@ class Assessment extends API_Conotroller
             'assessment_name' => $assessment_set['assessment_name'],
             'item_number' => $assessment_set['assessment_number'],
             'item_title' => $this->input->input_stream('item_title'),
-            'item_content' => $this->input->input_stream('item_content',false),
+            'item_content' => $save_content,
             'commit_datetime' => date('Y-m-d H:i:s'),
             'item_status' => 1,
             'assessment_role' => $assessment_set['assessment_role'],

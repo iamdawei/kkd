@@ -126,17 +126,19 @@
             alert('已审核的信息，不能删除啦~');
             return;
         }
-        $.ajax({
-            url:"/assessment/item/"+uid,
-            dataType:'json',
-            type:'delete',
-            success:function(result){
-                if(result.code == 200) {
-                    $(obj).parent().parent().addClass('disabled');
-                    $(obj).parent().parent().children("th").text('[已删除]');
+        confirm('确定删除该项吗？',function(){
+            $.ajax({
+                url:"/assessment/item/"+uid,
+                dataType:'json',
+                type:'delete',
+                success:function(result){
+                    if(result.code == 200) {
+                        $(obj).parent().parent().addClass('disabled');
+                        $(obj).parent().parent().children("th").text('[已删除]');
+                    }
+                    else alert(result.info);
                 }
-                else alert(result.info);
-            }
+            });
         });
     }
     function kkd_edit(uid,item_status)

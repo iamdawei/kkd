@@ -605,7 +605,7 @@ ul.navchild > li > a
 .icon-file-word{background: url('/images/common/icon-file/word.png') no-repeat 5px center;}
 .icon-file-video{background: url('/images/common/icon-file/video.png') no-repeat 5px center;}
 
-.kkd-loading,.kkd-nonedata{text-align: center;margin-top:50px;}
+.kkd-loading,.kkd-nonedata{text-align: center;margin:50px 0px;}
 .main-content{
     width: 100%;
     height: auto;
@@ -968,9 +968,13 @@ input[type="checkbox"]{
     margin-left:auto;
     margin-right:auto;
 }
-.btn.disabled, .btn[disabled], fieldset[disabled] .btn {
+.btn.disabled, .btn[disabled] {
     color:#fff;
     cursor: not-allowed !important;
+}
+select[disabled]{
+    color:#cccccc;
+    border: 1px solid #dddddd;
 }
 .btn-cancel{
     background-color: #fff;
@@ -1161,7 +1165,7 @@ input[type="checkbox"]{
 .kkd-dialog-wrap {
     width: 100%;
     height: auto;
-    position: fixed;
+    position: absolute;
     top: 50px;
     left: 0;
     z-index: 999;

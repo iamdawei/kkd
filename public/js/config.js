@@ -124,9 +124,6 @@ function kkd_dialog_close()
     $('.kkd-dialog-wrap').length ? $('.kkd-dialog-wrap').remove() : '';
 }
 
-function kkd_delete_confirm(){
-
-}
 function kkd_select_int()
 {
     (function() {
@@ -218,7 +215,7 @@ function get_assessment_item_info(url,obj)
         success:function(result){
             if(result.code == 200) {
                 var o = result.data;
-
+                if(o.item_content.length < 1)o.item_content = '无内容';
                 if(o.item_title){
                     maincontent = maincontent.replace('[assessment_type]', kkd_assessment_type[o.assessment_type]).replace('[item_title]', o.item_title)
                         .replace(/\[assessment_name\]/g, o.assessment_name).replace('[teacher_name]', o.teacher_name).replace('[item_zip]',item_split_zip(o.files))

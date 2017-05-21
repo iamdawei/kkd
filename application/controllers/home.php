@@ -315,18 +315,11 @@ SELECT SUM(item_number) AS item_number FROM kkd_assessment_item where file_numbe
         $where['assessment_type'] = $ass_item['assessment_type'];
         $where['kkd_assessment_set.school_id'] = $this->school_id;
         $ass_model = $this->assessment_model->get_name_list($where);
-        $ass_array = $this->assessment_model->get_info($ass_item['assessment_set_id'],'have_title,have_content,have_zip,assessment_descript,max_number');
 
         $main['KKD_ASS_MODEL'] = json_encode($ass_model);
         $main['DEFAULT_ITEM'] = $ass_item['assessment_set_id'];
         $item_type = ['专业标准','素养标准','学术标准'];
         $main['item_type']=$item_type[$where['assessment_type']];
-        $main['assessment_descript'] = $ass_array['assessment_descript'];
-        $main['max_number'] = $ass_array['max_number'];
-        $main['have_title'] = $ass_array['have_title'];
-        $main['have_content'] = $ass_array['have_content'];
-        $main['have_zip'] = $ass_array['have_zip'];
-
 
         $data['HEADER_CSS'] = "<link href=\"//cdn.bootcss.com/bootstrap/3.1.0/css/bootstrap.min.css\" rel=\"stylesheet\">
 <link rel=\"stylesheet\" href=\"/js/bootstrap.summernote/dist/summernote.0.8.2.css\">";
